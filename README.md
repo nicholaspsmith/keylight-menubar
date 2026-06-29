@@ -39,6 +39,29 @@ Builds `KeyLight.app`, symlinks it into `~/Applications`, and launches it. Grant
 **Accessibility** when prompted (needed to intercept the keys). Enable
 **Start at Login** from the menu if you want it persistent.
 
+### Make the Accessibility grant survive rebuilds (recommended)
+
+By default the app is ad-hoc signed, so every rebuild changes its code hash and
+macOS invalidates the Accessibility grant — you'd have to re-approve KeyLight
+after each rebuild. Create a stable local signing identity **once**:
+
+```sh
+../StatusItemKit/scripts/setup-signing.sh   # one-time, idempotent
+./install.sh                                # rebuild now signs with it
+```
+
+Grant Accessibility one more time after that; every later rebuild keeps it.
+
+**If the keys stop working after a rebuild** (i.e. still ad-hoc signed), the grant
+went stale — re-approve KeyLight in System Settings ▸ Privacy & Security ▸
+Accessibility. If it's already toggled on but inert, clear the stale entry and
+re-grant:
+
+```sh
+tccutil reset Accessibility com.nicholaspsmith.KeyLight
+open ~/Applications/KeyLight.app
+```
+
 ## Develop
 
 ```sh
