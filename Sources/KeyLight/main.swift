@@ -79,8 +79,22 @@ final class App: NSObject, NSApplicationDelegate {
     private func refreshIcon() {
         let level = backlight.currentLevel() ?? 0
         let active = tap?.isRunning == true
-        let color: NSColor = active ? .controlAccentColor : .systemGray
-        status.setIcon(MeterIcon.gauge(fraction: CGFloat(level), color: color))
+        let icon: NSImage
+        if active {
+            // Match the default menu-bar glyph color. A template image is tinted
+            // by the system — white in dark mode, black in light, and inverted
+            // when the menu is open. Template tinting uses only the drawn alpha
+            // (so the conventional black ink is fine); the level still reads from
+            // the needle angle and the faint 28%-alpha track.
+            icon = MeterIcon.gauge(fraction: CGFloat(level), color: .black)
+            icon.isTemplate = true
+        } else {
+            // Tap not running (Accessibility not yet granted): a muted gray keeps
+            // the "needs permission" state visually distinct (the menu also shows
+            // the "⚠ Grant Accessibility…" item).
+            icon = MeterIcon.gauge(fraction: CGFloat(level), color: .systemGray)
+        }
+        status.setIcon(icon)
     }
 
     private func buildMenu(_ menu: NSMenu) {
