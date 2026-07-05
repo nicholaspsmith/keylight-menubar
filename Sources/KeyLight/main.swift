@@ -17,7 +17,10 @@ final class App: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         status = StatusItemController(
             pollInterval: 5,
-            onPoll: { [weak self] in self?.refreshIcon() },
+            onPoll: { [weak self] in
+                self?.reassertTap()
+                self?.refreshIcon()
+            },
             onBuildMenu: { [weak self] menu in self?.buildMenu(menu) }
         )
         status.start()
@@ -48,6 +51,19 @@ final class App: NSObject, NSApplicationDelegate {
         trustTimer?.invalidate()
         trustTimer = nil
         refreshIcon()
+    }
+
+    /// Other apps (BetterDisplay, notably) re-create their session filter taps
+    /// on display reconfiguration, head-inserting them in front of ours — after
+    /// which they see our bound keys first and can swallow them before we do.
+    /// Re-creating our tap on each poll tick keeps it frontmost within seconds
+    /// of any such leapfrog, at negligible cost.
+    private func reassertTap() {
+        // Optional-safe: the first poll fires from status.start() before the
+        // tap exists (same reason refreshIcon uses `tap?`).
+        guard let tap, tap.isTrusted, tap.isRunning else { return }
+        tap.stop()
+        tap.start()
     }
 
     private func scheduleTrustRecheck() {
