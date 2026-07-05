@@ -80,7 +80,7 @@ final class App: NSObject, NSApplicationDelegate {
         let level = backlight.currentLevel() ?? 0
         let active = tap?.isRunning == true
         let icon: NSImage
-        if active {
+        if active && !backlight.isSuppressed {
             // Match the default menu-bar glyph color. A template image is tinted
             // by the system — white in dark mode, black in light, and inverted
             // when the menu is open. Template tinting uses only the drawn alpha
@@ -89,9 +89,11 @@ final class App: NSObject, NSApplicationDelegate {
             icon = MeterIcon.gauge(fraction: CGFloat(level), color: .black)
             icon.isTemplate = true
         } else {
-            // Tap not running (Accessibility not yet granted): a muted gray keeps
-            // the "needs permission" state visually distinct (the menu also shows
-            // the "⚠ Grant Accessibility…" item).
+            // KeyLight can't change the backlight right now: either the tap isn't
+            // running (Accessibility not yet granted) or macOS is suppressing the
+            // backlight (lid closed). A muted gray keeps that visually distinct;
+            // the menu says which ("⚠ Grant Accessibility…" / "Backlight
+            // suppressed (lid closed)").
             icon = MeterIcon.gauge(fraction: CGFloat(level), color: .systemGray)
         }
         status.setIcon(icon)
