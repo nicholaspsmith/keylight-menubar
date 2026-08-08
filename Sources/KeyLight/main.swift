@@ -13,6 +13,13 @@ final class App: NSObject, NSApplicationDelegate {
     private var tap: HotkeyTap!
     private var prefs: PreferencesWindowController?
     private var trustTimer: Timer?
+    private var iconStyle = IconStyleStore.load(from: .standard)
+
+    /// Menu previews are drawn at a fixed level, not the live one: at 0% the
+    /// arc, pie and wedge all collapse to an empty disk and stop being tellable
+    /// apart — exactly when someone adjusting the backlight opens the menu. The
+    /// preview's job is the shape; the level is on the menu's first row.
+    private static let previewFraction: CGFloat = 0.6
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         status = StatusItemController(
@@ -92,6 +99,17 @@ final class App: NSObject, NSApplicationDelegate {
 
     // MARK: - Icon + menu
 
+    /// All four meters share a `(fraction:color:)` signature, so the style is a
+    /// pure swap — the suppressed/untrusted coloring below is unaffected.
+    private func makeIcon(_ style: IconStyle, fraction: CGFloat, color: NSColor) -> NSImage {
+        switch style {
+        case .gauge: return MeterIcon.gauge(fraction: fraction, color: color)
+        case .arc: return MeterIcon.arc(fraction: fraction, color: color)
+        case .pie: return MeterIcon.pie(fraction: fraction, color: color)
+        case .wedge: return MeterIcon.wedge(fraction: fraction, color: color)
+        }
+    }
+
     private func refreshIcon() {
         let level = backlight.currentLevel() ?? 0
         let active = tap?.isRunning == true
@@ -101,8 +119,8 @@ final class App: NSObject, NSApplicationDelegate {
             // by the system — white in dark mode, black in light, and inverted
             // when the menu is open. Template tinting uses only the drawn alpha
             // (so the conventional black ink is fine); the level still reads from
-            // the needle angle and the faint 28%-alpha track.
-            icon = MeterIcon.gauge(fraction: CGFloat(level), color: .black)
+            // the drawn geometry against the faint 28%-alpha track.
+            icon = makeIcon(iconStyle, fraction: CGFloat(level), color: .black)
             icon.isTemplate = true
         } else {
             // KeyLight can't change the backlight right now: either the tap isn't
@@ -110,7 +128,7 @@ final class App: NSObject, NSApplicationDelegate {
             // backlight (lid closed). A muted gray keeps that visually distinct;
             // the menu says which ("⚠ Grant Accessibility…" / "Backlight
             // suppressed (lid closed)").
-            icon = MeterIcon.gauge(fraction: CGFloat(level), color: .systemGray)
+            icon = makeIcon(iconStyle, fraction: CGFloat(level), color: .systemGray)
         }
         status.setIcon(icon)
     }
@@ -135,12 +153,34 @@ final class App: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
         menu.addItem(actionItem("Preferences…", #selector(openPrefs), key: ","))
 
+        let icon = NSMenuItem(title: "Icon", action: nil, keyEquivalent: "")
+        icon.submenu = buildIconMenu()
+        menu.addItem(icon)
+
         let login = actionItem("Start at Login", #selector(toggleLogin))
         login.state = LoginItem.isEnabled ? .on : .off
         menu.addItem(login)
 
         menu.addItem(.separator())
         menu.addItem(actionItem("Quit KeyLight", #selector(quit), key: "q"))
+    }
+
+    /// One row per meter style, each previewing itself. Rebuilt on every menu
+    /// open, so the checkmark always reflects the live choice.
+    private func buildIconMenu() -> NSMenu {
+        let menu = NSMenu()
+        for style in IconStyle.allCases {
+            let item = actionItem(style.label, #selector(selectIcon(_:)))
+            item.representedObject = style.rawValue
+            item.state = style == iconStyle ? .on : .off
+            // Native 18pt: resizing would re-run the drawing handler in a
+            // smaller rect while MeterIcon's radii stay put, clipping the glyph.
+            let preview = makeIcon(style, fraction: Self.previewFraction, color: .black)
+            preview.isTemplate = true
+            item.image = preview
+            menu.addItem(item)
+        }
+        return menu
     }
 
     private func disabledItem(_ title: String) -> NSMenuItem {
@@ -163,6 +203,15 @@ final class App: NSObject, NSApplicationDelegate {
     @objc private func openPrefs() {
         if prefs == nil { prefs = PreferencesWindowController(model: model) }
         prefs?.show()
+    }
+
+    @objc private func selectIcon(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String,
+              let style = IconStyle(rawValue: raw)
+        else { return }
+        iconStyle = style
+        IconStyleStore.save(style, to: .standard)
+        refreshIcon()
     }
 
     @objc private func toggleLogin() { LoginItem.toggle() }
