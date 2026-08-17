@@ -8,6 +8,10 @@ import StatusItemKit
 /// setup), with a live level indicator and a small rebind UI.
 final class App: NSObject, NSApplicationDelegate {
     private var status: StatusItemController!
+    /// Steps this icon aside while Curtain reveals the hidden block — the bar has
+    /// no spare room, so a reveal borrows slots from the apps that cooperate.
+    /// Restores itself on a timer if Curtain goes away mid-reveal.
+    private var yieldClient: YieldClient!
     private let backlight = makeBacklightController()
     private let model = BindingsModel()
     private var tap: HotkeyTap!
@@ -31,6 +35,8 @@ final class App: NSObject, NSApplicationDelegate {
             onBuildMenu: { [weak self] menu in self?.buildMenu(menu) }
         )
         status.start()
+        yieldClient = YieldClient(item: status)
+        yieldClient.start()
 
         tap = HotkeyTap(
             bindings: model.bindings,
