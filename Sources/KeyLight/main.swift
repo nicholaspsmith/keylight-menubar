@@ -93,11 +93,7 @@ final class App: NSObject, NSApplicationDelegate {
     private func handle(token: String) -> Bool {
         guard let action = BacklightAction(rawValue: token) else { return false }
         let current = backlight.currentLevel() ?? 0
-        let next = LevelMath.nextLevel(
-            current: current,
-            step: LevelMath.defaultStep,
-            direction: action.direction
-        )
+        let next = LevelMath.nextLevel(current: current, direction: action.direction)
         backlight.setLevel(next)
         refreshIcon()
         return true

@@ -12,6 +12,12 @@ mkdir -p "$HOME/Applications"
 ln -sfn "$SRC_DIR/build/$APP_NAME" "$HOME/Applications/$APP_NAME"
 echo "Linked $HOME/Applications/$APP_NAME -> $SRC_DIR/build/$APP_NAME"
 
+# Restart a running instance so the rebuild takes effect: `open` alone only
+# activates an app that is already running.
+if pgrep -xq KeyLight; then
+  pkill -x KeyLight
+  while pgrep -xq KeyLight; do sleep 0.1; done
+fi
 open "$HOME/Applications/$APP_NAME"
 
 cat <<'EOF'

@@ -13,8 +13,13 @@ menu-bar shell) and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit)
 
 | Trigger (default) | Action |
 |-------------------|--------|
-| `Ctrl + Brightness Up` | keyboard backlight up one step (1/16) |
+| `Ctrl + Brightness Up` | keyboard backlight up one step |
 | `Ctrl + Brightness Down` | keyboard backlight down one step |
+
+Steps are sixteenths from 1/16 up to full, like the native keys. Below 1/16 they
+halve — 1/32, 1/64, 1/128 — before switching off, because the native floor is
+still fairly bright: 1/128 is the dimmest level the keyboard's PWM can actually
+produce (about five times dimmer than 1/16), and anything lower is identical.
 
 The original brightness key is swallowed, so the display brightness doesn't
 change. The menu-bar gauge tracks the level; rebind either control in
