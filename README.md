@@ -9,7 +9,8 @@ level, and a small preferences window lets you rebind the two controls.
 
 Built on [StatusItemKit](https://github.com/nicholaspsmith/StatusItemKit) (the
 menu-bar shell) and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit)
-(the global key-tap engine).
+(the global key-tap engine). Part of the
+[Menubarn](https://widgets.nicksmith.software) widget library.
 
 ## What it does
 
