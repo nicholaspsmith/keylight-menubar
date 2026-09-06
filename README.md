@@ -1,5 +1,7 @@
 # KeyLight
 
+<p align="center"><img src="docs/mascot.png" width="160" alt="KeyLight mascot, from the Menubarn widget library"></p>
+
 A tiny standalone macOS menu-bar app that remaps **Ctrl + the brightness keys**
 to **keyboard-backlight** up/down — a drop-in replacement for using
 BetterTouchTool just for that. The menu-bar icon shows the current backlight
