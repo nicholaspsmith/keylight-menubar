@@ -2,14 +2,15 @@ import Foundation
 
 /// Which StatusItemKit meter the menu-bar icon is drawn with.
 public enum IconStyle: String, CaseIterable, Sendable {
-    case gauge, arc, pie, wedge
+    case key, gauge, arc, pie, wedge
 
     /// Used when nothing is stored, or what's stored isn't a style we know.
-    public static let fallback = IconStyle.gauge
+    public static let fallback = IconStyle.key
 
     /// Human-readable label for the menu.
     public var label: String {
         switch self {
+        case .key: return "Key"
         case .gauge: return "Gauge"
         case .arc: return "Arc"
         case .pie: return "Pie"

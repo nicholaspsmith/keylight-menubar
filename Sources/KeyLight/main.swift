@@ -109,6 +109,7 @@ final class App: NSObject, NSApplicationDelegate {
     /// pure swap — the suppressed/untrusted coloring below is unaffected.
     private func makeIcon(_ style: IconStyle, fraction: CGFloat, color: NSColor) -> NSImage {
         switch style {
+        case .key: return CharacterIcon.key(level: fraction, active: color == .black)
         case .gauge: return MeterIcon.gauge(fraction: fraction, color: color)
         case .arc: return MeterIcon.arc(fraction: fraction, color: color)
         case .pie: return MeterIcon.pie(fraction: fraction, color: color)
@@ -127,7 +128,8 @@ final class App: NSObject, NSApplicationDelegate {
             // (so the conventional black ink is fine); the level still reads from
             // the drawn geometry against the faint 28%-alpha track.
             icon = makeIcon(iconStyle, fraction: CGFloat(level), color: .black)
-            icon.isTemplate = true
+            // The key is full colour (its lit rays are the level); the meters are templates.
+            icon.isTemplate = iconStyle != .key
         } else {
             // KeyLight can't change the backlight right now: either the tap isn't
             // running (Accessibility not yet granted) or macOS is suppressing the
