@@ -28,11 +28,11 @@ also be set by dragging.
 
 ![The menu-bar icon](docs/menubar-icon.png)
 
-A keycap in sunglasses whose rays light up clockwise with the backlight: none at
-0%, all eight at 100%, and the first one comes on at 1% so the key is never dark
-while the backlight is on. It turns grey when KeyLight cannot change the
-backlight (Accessibility not granted yet, or the lid is closed); the menu says
-which. Prefer a plain meter? **menu ▸ Icon** offers Gauge, Arc, Pie or Wedge;
+A keycap in sunglasses whose rays light up clockwise with the backlight, shown
+above at 0%, 25%, 75% and 100%: grey when the backlight is off, all eight rays
+at full, and the first ray comes on at 1% so the key is never dark while the
+backlight is on. It also turns grey when KeyLight cannot change the backlight
+(Accessibility not granted yet, or the lid is closed); the menu says which. Prefer a plain meter? **menu ▸ Icon** offers Gauge, Arc, Pie or Wedge;
 each row previews itself, and the choice persists across launches.
 
 ## How it works
