@@ -18,6 +18,8 @@ final class App: NSObject, NSApplicationDelegate {
     private var prefs: PreferencesWindowController?
     private var trustTimer: Timer?
     private var iconStyle = IconStyleStore.load(from: .standard)
+    /// The slider in the open menu, if any, so hotkey presses keep it in step.
+    private weak var sliderView: BrightnessSliderView?
 
     /// Menu previews are drawn at a fixed level, not the live one: at 0% the
     /// arc, pie and wedge all collapse to an empty disk and stop being tellable
@@ -100,6 +102,7 @@ final class App: NSObject, NSApplicationDelegate {
         )
         backlight.setLevel(next)
         refreshIcon()
+        sliderView?.update(level: next)
         return true
     }
 
@@ -149,8 +152,16 @@ final class App: NSObject, NSApplicationDelegate {
         } else if backlight.isSuppressed {
             menu.addItem(disabledItem("Backlight suppressed (lid closed)"))
         } else {
-            let pct = Int(((backlight.currentLevel() ?? 0) * 100).rounded())
-            menu.addItem(disabledItem("Backlight: \(pct)%"))
+            // A slider row: drag to set the level; the hotkeys keep working too.
+            let row = NSMenuItem()
+            let view = BrightnessSliderView(level: backlight.currentLevel() ?? 0) { [weak self] level in
+                guard let self else { return }
+                self.backlight.setLevel(level)
+                self.refreshIcon()
+            }
+            row.view = view
+            sliderView = view
+            menu.addItem(row)
         }
 
         if !(tap?.isTrusted ?? false) {

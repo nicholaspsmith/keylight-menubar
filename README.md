@@ -21,7 +21,8 @@ menu-bar shell) and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit)
 
 The original brightness key is swallowed, so the display brightness doesn't
 change. The menu-bar gauge tracks the level; rebind either control in
-Preferences.
+Preferences. The menu's first row is a brightness slider, so the backlight can
+also be set by dragging.
 
 Pick the meter you prefer under **menu ▸ Icon** — Gauge, Arc, Pie or Wedge. Each
 row previews itself, and the choice persists across launches.
