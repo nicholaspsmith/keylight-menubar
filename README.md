@@ -92,11 +92,6 @@ Requires sibling checkouts of `StatusItemKit` and `HotkeyKit` next to this repo.
 - macOS 13+ (Apple Silicon validated on macOS 26 / Tahoe)
 - Accessibility permission
 
-## Replacing BetterTouchTool
-
-Once KeyLight works, confirm BTT isn't doing anything else for you, then remove
-its brightness triggers (or quit BTT) and uninstall it.
-
 ## Why not a SwiftBar plugin?
 
 This is a standalone `.app` built on [StatusItemKit](https://github.com/nicholaspsmith/StatusItemKit), not a script under a plugin host: no SwiftBar to install, a real AppKit menu instead of rendered stdout, event-driven updates instead of a re-run timer, and an icon that keeps its place in the bar. Intercepting the brightness keys needs a `CGEventTap`, which a plugin script cannot own at all. The full comparison is in [StatusItemKit's README](https://github.com/nicholaspsmith/StatusItemKit#why-not-swiftbar).
