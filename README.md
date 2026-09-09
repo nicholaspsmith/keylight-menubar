@@ -24,8 +24,16 @@ change. The menu-bar gauge tracks the level; rebind either control in
 Preferences. The menu's first row is a brightness slider, so the backlight can
 also be set by dragging.
 
-Pick the meter you prefer under **menu ▸ Icon** — Gauge, Arc, Pie or Wedge. Each
-row previews itself, and the choice persists across launches.
+## The menu-bar icon
+
+![The menu-bar icon](docs/menubar-icon.png)
+
+A keycap in sunglasses whose rays light up clockwise with the backlight: none at
+0%, all eight at 100%, and the first one comes on at 1% so the key is never dark
+while the backlight is on. It turns grey when KeyLight cannot change the
+backlight (Accessibility not granted yet, or the lid is closed); the menu says
+which. Prefer a plain meter? **menu ▸ Icon** offers Gauge, Arc, Pie or Wedge;
+each row previews itself, and the choice persists across launches.
 
 ## How it works
 
@@ -105,7 +113,7 @@ colour, and cooperative hiding so no icon strands another.
 | [Claude Usage](https://github.com/nicholaspsmith/claude-usage-menubar) | Claude Code plan limits, resets, and live agent sessions |
 | [Apollo Monitor](https://github.com/nicholaspsmith/apollo-monitor-menubar) | Universal Audio Apollo monitor level, plus a UA process watchdog |
 | [Battery Time](https://github.com/nicholaspsmith/battery-time-menubar) | Time remaining, power mode, and 24h usage |
-| [VPN & DNS](https://github.com/nicholaspsmith/vpn-dns-menubar) | One dot for Mullvad + Tailscale state, with a DNS watcher |
+| [VPN & DNS](https://github.com/nicholaspsmith/vpn-dns-menubar) | A chameleon for Mullvad + Tailscale state, with a DNS watcher |
 | [Process Monitor](https://github.com/nicholaspsmith/MacOS_Process_Monitor) | Process-count sparkline against the per-UID limit |
 | **KeyLight** | Ctrl+brightness keys remapped to keyboard backlight |
 | [MacRecorder](https://github.com/nicholaspsmith/MacRecorder) | Screen recording with system audio |
