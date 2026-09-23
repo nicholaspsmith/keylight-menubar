@@ -46,8 +46,8 @@ final class IconStyleTests: XCTestCase {
         XCTAssertEqual(IconStyleStore.load(from: defaults), .fallback)
     }
 
-    func testMenuOrderIsGaugeArcPieWedge() {
-        XCTAssertEqual(IconStyle.allCases, [.gauge, .arc, .pie, .wedge])
+    func testMenuOrderIsKeyGaugeArcPieWedge() {
+        XCTAssertEqual(IconStyle.allCases, [.key, .gauge, .arc, .pie, .wedge])
     }
 
     func testEveryStyleHasANonEmptyLabel() {

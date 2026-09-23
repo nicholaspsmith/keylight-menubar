@@ -31,8 +31,11 @@ enum TriggerFormatter {
 
     static func mediaName(_ code: Int32) -> String {
         switch code {
+        case 0:  return "Volume Up"
+        case 1:  return "Volume Down"
         case 2:  return "Brightness Up"
         case 3:  return "Brightness Down"
+        case 7:  return "Mute"
         default: return "Media(\(code))"
         }
     }
@@ -51,5 +54,7 @@ enum TriggerFormatter {
         34: "I", 35: "P", 36: "Return", 37: "L", 38: "J", 39: "'", 40: "K",
         41: ";", 42: "\\", 43: ",", 44: "/", 45: "N", 46: "M", 47: ".", 48: "Tab",
         49: "Space", 50: "`", 51: "Delete", 53: "Esc",
+        122: "F1", 120: "F2", 99: "F3", 118: "F4", 96: "F5", 97: "F6",
+        98: "F7", 100: "F8", 101: "F9", 109: "F10", 103: "F11", 111: "F12",
     ]
 }

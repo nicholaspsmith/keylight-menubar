@@ -4,8 +4,10 @@
 
 A tiny standalone macOS menu-bar app that remaps **Ctrl + the brightness keys**
 to **keyboard-backlight** up/down — a drop-in replacement for using
-BetterTouchTool just for that. The menu-bar icon shows the current backlight
-level, and a small preferences window lets you rebind the two controls.
+BetterTouchTool just for that — and gives **third-party keyboards** the
+brightness and volume keys an Apple keyboard has on F1/F2 and F10–F12. The
+menu-bar icon shows the current backlight level, and a small preferences window
+lets you rebind the two backlight controls.
 
 Built on [StatusItemKit](https://github.com/nicholaspsmith/StatusItemKit) (the
 menu-bar shell) and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit)
@@ -18,11 +20,37 @@ menu-bar shell) and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit)
 |-------------------|--------|
 | `Ctrl + Brightness Up` | keyboard backlight up one step (1/16) |
 | `Ctrl + Brightness Down` | keyboard backlight down one step |
+| `Ctrl + F2` / `Ctrl + F1` | the same, for keyboards whose F1/F2 are plain F-keys |
 
 The original brightness key is swallowed, so the display brightness doesn't
 change. The menu-bar gauge tracks the level; rebind either control in
 Preferences. The menu's first row is a brightness slider, so the backlight can
 also be set by dragging.
+
+### Third-party keyboards
+
+An Apple keyboard's F1/F2 and F10–F12 send brightness and volume as media
+keys. A generic Bluetooth or USB board sends them as plain F1–F12, so macOS
+does nothing with them (or worse: F11 hides every window). With **menu ▸
+Function Keys on Other Keyboards** on (the default), KeyLight sends the media
+key an Apple keyboard would have sent:
+
+| Key on a non-Apple keyboard | Becomes |
+|-----------------------------|---------|
+| `F1` / `F2` | brightness down / up |
+| `F10` | mute |
+| `F11` / `F12` | volume down / up |
+
+Holding a key repeats. The remap posts the same system event the Apple key
+does, so macOS shows its own HUD and whatever normally handles brightness
+keys — the built-in display, or a DDC tool like BetterDisplay for an external
+monitor — handles these too. KeyLight never talks to a display or the audio
+device itself.
+
+It applies only to keyboards that are not Apple's (identified per event from
+the sending HID device), so `fn + F1` on the MacBook keyboard is still F1. The
+Mission Control, Spotlight and media-transport keys are deliberately not
+remapped; those stay whatever the board sends.
 
 ## The menu-bar icon
 
@@ -37,8 +65,15 @@ each row previews itself, and the choice persists across launches.
 
 ## How it works
 
-- **HotkeyKit** owns a `CGEventTap` that intercepts the brightness media keys,
-  matches them against the bindings, and swallows the matched event.
+- **HotkeyKit** owns a `CGEventTap` that intercepts the brightness media keys
+  and the F-keys, matches them against the bindings, and swallows the matched
+  event (and its key-up). It reads the sending device from the event so the
+  F-key remaps can be scoped to non-Apple keyboards, and treats the `fn` flag
+  as implied on F-keys — macOS sets it on every F-key event from every
+  keyboard, fn key or not.
+- **MediaKeyPoster** sends the Apple media-key event (press + release) at the
+  HID level for the F-key remaps. A posted event has no sending device, so the
+  tap never sees its own output as a third-party keystroke.
 - **CoreBrightness** (`KeyboardBrightnessClient`, private framework) reads/sets
   the built-in keyboard backlight. The keyboard id is discovered via
   `copyKeyboardBacklightIDs` (never hardcoded). When the backlight is suppressed

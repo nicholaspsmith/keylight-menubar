@@ -47,7 +47,7 @@ final class App: NSObject, NSApplicationDelegate {
         yieldClient.start()
 
         tap = HotkeyTap(
-            bindings: model.bindings,
+            bindings: model.tapBindings,
             onMatch: { [weak self] token in self?.handle(token: token) ?? false }
         )
         model.onChange = { [weak self] bindings in self?.tap.setBindings(bindings) }
@@ -97,8 +97,12 @@ final class App: NSObject, NSApplicationDelegate {
 
     // MARK: - Action
 
-    /// Returns true to swallow the key (always, for our backlight bindings).
+    /// Returns true to swallow the key (always, for our own bindings).
     private func handle(token: String) -> Bool {
+        if let media = MediaAction(rawValue: token) {
+            MediaKeyPoster.post(media)
+            return true
+        }
         guard let action = BacklightAction(rawValue: token) else { return false }
         let current = backlight.currentLevel() ?? 0
         let next = LevelMath.nextLevel(
@@ -178,6 +182,13 @@ final class App: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
         menu.addItem(actionItem("Preferences…", #selector(openPrefs), key: ","))
 
+        // Third-party boards send F1–F12 as plain F-keys; this gives them the
+        // brightness / mute / volume keys an Apple keyboard has there.
+        let fkeys = actionItem("Function Keys on Other Keyboards", #selector(toggleFunctionKeys))
+        fkeys.state = model.functionKeysOnOtherKeyboards ? .on : .off
+        fkeys.toolTip = "F1/F2 brightness, F10/F11/F12 mute and volume on keyboards that aren't Apple's"
+        menu.addItem(fkeys)
+
         let icon = NSMenuItem(title: "Icon", action: nil, keyEquivalent: "")
         icon.submenu = buildIconMenu()
         menu.addItem(icon)
@@ -237,6 +248,10 @@ final class App: NSObject, NSApplicationDelegate {
         iconStyle = style
         IconStyleStore.save(style, to: .standard)
         refreshIcon()
+    }
+
+    @objc private func toggleFunctionKeys() {
+        model.functionKeysOnOtherKeyboards.toggle()
     }
 
     @objc private func toggleLogin() { LoginItem.toggle() }
