@@ -12,18 +12,38 @@ import KeyLightCore
 /// Single source of truth for the active bindings. Loads user overrides from
 /// `UserDefaults`, merges them over the built-in defaults, persists changes, and
 /// notifies observers (the prefs UI via `@Published`, the tap via `onChange`).
+///
+/// `bindings` is the rebindable pair the Preferences window shows;
+/// `tapBindings` adds the fixed ctrl+F1/F2 aliases and, while the toggle is on,
+/// the function-key remaps for third-party keyboards.
 final class BindingsModel: ObservableObject {
     @Published private(set) var bindings: [Binding]
 
-    /// Called whenever the resolved bindings change (e.g. to re-register the tap).
+    /// Called whenever the tap's bindings change (e.g. to re-register the tap).
     var onChange: (([Binding]) -> Void)?
+
+    /// F1/F2/F10/F11/F12 → brightness / mute / volume on non-Apple keyboards.
+    var functionKeysOnOtherKeyboards: Bool {
+        didSet {
+            UserDefaults.standard.set(functionKeysOnOtherKeyboards, forKey: Self.functionKeysKey)
+            recompute()
+        }
+    }
+
+    var tapBindings: [Binding] {
+        BindingStore.resolveAll(overrides: overrides, functionKeysOnOtherKeyboards: functionKeysOnOtherKeyboards)
+    }
 
     private var overrides: [String: Trigger]
     private let defaultsKey = "bindingOverrides"
+    static let functionKeysKey = "functionKeysOnOtherKeyboards"
 
     init() {
         overrides = Self.loadOverrides(key: defaultsKey)
         bindings = BindingStore.resolve(overrides: overrides)
+        // On by default: an absent key reads as enabled.
+        functionKeysOnOtherKeyboards =
+            UserDefaults.standard.object(forKey: Self.functionKeysKey) as? Bool ?? true
     }
 
     func setOverride(token: String, trigger: Trigger) {
@@ -43,7 +63,7 @@ final class BindingsModel: ObservableObject {
 
     private func recompute() {
         bindings = BindingStore.resolve(overrides: overrides)
-        onChange?(bindings)
+        onChange?(tapBindings)
     }
 
     private func persist() {
