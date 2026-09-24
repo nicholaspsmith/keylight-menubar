@@ -15,6 +15,10 @@ protocol BacklightController: AnyObject {
     var isSuppressed: Bool { get }
     func currentLevel() -> Double?
     @discardableResult func setLevel(_ level: Double) -> Bool
+    /// Seconds of inactivity before macOS turns the backlight off; 0 = never.
+    /// The same setting as System Settings ▸ Keyboard's inactivity timeout.
+    func idleDimTime() -> Double?
+    @discardableResult func setIdleDimTime(_ seconds: Double) -> Bool
 }
 
 /// Private-`CoreBrightness` implementation, validated on macOS 26 / Apple
@@ -56,6 +60,18 @@ final class CoreBrightnessBacklight: BacklightController {
         return Self.setBrightness(v, cls, client, keyboardID) ?? false
     }
 
+    func idleDimTime() -> Double? {
+        guard let d = Self.doubleFor("idleDimTimeForKeyboard:", cls, client, keyboardID),
+              d >= 0, d.isFinite else { return nil }
+        return d
+    }
+
+    @discardableResult
+    func setIdleDimTime(_ seconds: Double) -> Bool {
+        guard seconds >= 0, seconds.isFinite else { return false }
+        return Self.setIdleDimTime(seconds, cls, client, keyboardID) ?? false
+    }
+
     // MARK: - Private ObjC bridging (typed IMP calls; scalar args/returns)
 
     private static func builtInKeyboardID(cls: NSObject.Type, client: NSObject) -> Int64? {
@@ -84,6 +100,20 @@ final class CoreBrightnessBacklight: BacklightController {
         return unsafeBitCast(method_getImplementation(m), to: F.self)(client, s, kb)
     }
 
+    private static func doubleFor(_ sel: String, _ cls: NSObject.Type, _ client: NSObject, _ kb: Int64) -> Double? {
+        let s = NSSelectorFromString(sel)
+        guard let m = class_getInstanceMethod(cls, s) else { return nil }
+        typealias F = @convention(c) (AnyObject, Selector, Int64) -> Double
+        return unsafeBitCast(method_getImplementation(m), to: F.self)(client, s, kb)
+    }
+
+    private static func setIdleDimTime(_ v: Double, _ cls: NSObject.Type, _ client: NSObject, _ kb: Int64) -> Bool? {
+        let s = NSSelectorFromString("setIdleDimTime:forKeyboard:")
+        guard let m = class_getInstanceMethod(cls, s) else { return nil }
+        typealias F = @convention(c) (AnyObject, Selector, Double, Int64) -> ObjCBool
+        return unsafeBitCast(method_getImplementation(m), to: F.self)(client, s, v, kb).boolValue
+    }
+
     private static func setBrightness(_ v: Float, _ cls: NSObject.Type, _ client: NSObject, _ kb: Int64) -> Bool? {
         let s = NSSelectorFromString("setBrightness:forKeyboard:")
         guard let m = class_getInstanceMethod(cls, s) else { return nil }
@@ -100,6 +130,8 @@ final class UnavailableBacklight: BacklightController {
     var isSuppressed: Bool { false }
     func currentLevel() -> Double? { nil }
     @discardableResult func setLevel(_ level: Double) -> Bool { false }
+    func idleDimTime() -> Double? { nil }
+    @discardableResult func setIdleDimTime(_ seconds: Double) -> Bool { false }
 }
 
 /// Pick the best available backlight controller.

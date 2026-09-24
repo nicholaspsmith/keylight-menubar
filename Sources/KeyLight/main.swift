@@ -55,6 +55,15 @@ final class App: NSObject, NSApplicationDelegate {
         if !tap.isTrusted { tap.requestTrust() }
         startTapIfPossible()
         refreshIcon()
+        reapplyTimeout()
+    }
+
+    /// System Settings can overwrite the inactivity timeout at any time (its
+    /// own picker writes the same value), so a choice made here is stored and
+    /// pushed back at every launch. No choice stored means macOS keeps its own.
+    private func reapplyTimeout() {
+        guard let chosen = BacklightTimeoutStore.load(from: .standard) else { return }
+        backlight.setIdleDimTime(chosen.seconds)
     }
 
     // MARK: - Tap lifecycle
@@ -189,6 +198,13 @@ final class App: NSObject, NSApplicationDelegate {
         fkeys.toolTip = "F1/F2 brightness, F10/F11/F12 mute and volume on keyboards that aren't Apple's"
         menu.addItem(fkeys)
 
+        // How long the keys stay lit with nobody typing. macOS owns the timer
+        // and relights on the next keypress; this only sets the delay.
+        let timeout = NSMenuItem(title: "Backlight Timeout", action: nil, keyEquivalent: "")
+        timeout.submenu = buildTimeoutMenu()
+        timeout.toolTip = "Turn the backlight off after this long without input; it comes back on the next keypress"
+        menu.addItem(timeout)
+
         let icon = NSMenuItem(title: "Icon", action: nil, keyEquivalent: "")
         icon.submenu = buildIconMenu()
         menu.addItem(icon)
@@ -215,6 +231,23 @@ final class App: NSObject, NSApplicationDelegate {
             let preview = makeIcon(style, fraction: Self.previewFraction, color: .black)
             preview.isTemplate = true
             item.image = preview
+            menu.addItem(item)
+        }
+        return menu
+    }
+
+    /// One row per timeout. The checkmark reads the live value from macOS
+    /// rather than our stored choice, so a change made in System Settings shows
+    /// here too — and a value we don't offer (10 s, 30 s) checks nothing.
+    private func buildTimeoutMenu() -> NSMenu {
+        let menu = NSMenu()
+        let live = backlight.idleDimTime().flatMap(BacklightTimeout.init(seconds:))
+        for timeout in BacklightTimeout.allCases {
+            let item = actionItem(timeout.label, #selector(selectTimeout(_:)))
+            item.representedObject = timeout.seconds
+            item.state = timeout == live ? .on : .off
+            item.isEnabled = backlight.isAvailable
+            if timeout == .never || timeout == .minutes1 { menu.addItem(.separator()) }
             menu.addItem(item)
         }
         return menu
@@ -249,6 +282,14 @@ final class App: NSObject, NSApplicationDelegate {
         iconStyle = style
         IconStyleStore.save(style, to: .standard)
         refreshIcon()
+    }
+
+    @objc private func selectTimeout(_ sender: NSMenuItem) {
+        guard let seconds = sender.representedObject as? Double,
+              let timeout = BacklightTimeout(seconds: seconds)
+        else { return }
+        backlight.setIdleDimTime(timeout.seconds)
+        BacklightTimeoutStore.save(timeout, to: .standard)
     }
 
     @objc private func toggleFunctionKeys() {

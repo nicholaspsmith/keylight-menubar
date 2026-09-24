@@ -52,6 +52,18 @@ the sending HID device), so `fn + F1` on the MacBook keyboard is still F1. The
 Mission Control, Spotlight and media-transport keys are deliberately not
 remapped; those stay whatever the board sends.
 
+### Backlight timeout
+
+**menu ▸ Backlight Timeout** sets how long the keys stay lit with nobody
+typing before macOS turns them off — 1, 2, 3, 4 or 5 seconds, 1, 2, 5 or 10
+minutes, or Never. The next keypress lights them again. This is the same
+setting as System Settings ▸ Keyboard ▸ *Turn keyboard backlight off after …
+of inactivity*, which only offers 5 seconds and up; macOS accepts any delay,
+so KeyLight just offers the short ones too. The checkmark shows the live
+value, so a change made in System Settings is reflected here (a value KeyLight
+doesn't offer, like 30 seconds, checks nothing). A choice made in KeyLight is
+re-applied at each launch, since System Settings can overwrite it.
+
 ## The menu-bar icon
 
 ![The menu-bar icon](docs/menubar-icon.png)
@@ -75,7 +87,8 @@ each row previews itself, and the choice persists across launches.
   HID level for the F-key remaps. A posted event has no sending device, so the
   tap never sees its own output as a third-party keystroke.
 - **CoreBrightness** (`KeyboardBrightnessClient`, private framework) reads/sets
-  the built-in keyboard backlight. The keyboard id is discovered via
+  the built-in keyboard backlight and its inactivity timeout
+  (`setIdleDimTime:forKeyboard:`, seconds, 0 = never). The keyboard id is discovered via
   `copyKeyboardBacklightIDs` (never hardcoded). When the backlight is suppressed
   (clamshell / lid closed), sets no-op — the app handles this gracefully.
 
