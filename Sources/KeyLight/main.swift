@@ -8,6 +8,9 @@ import AppKit
 import HotkeyKit
 import KeyLightCore
 import StatusItemKit
+import os
+
+let log = Logger(subsystem: "com.nicholaspsmith.KeyLight", category: "backlight")
 
 /// KeyLight — a standalone menu-bar app that remaps Ctrl + brightness keys to
 /// keyboard-backlight up/down (a drop-in replacement for the BetterTouchTool
@@ -26,6 +29,9 @@ final class App: NSObject, NSApplicationDelegate {
     private var iconStyle = IconStyleStore.load(from: .standard)
     /// The slider in the open menu, if any, so hotkey presses keep it in step.
     private weak var sliderView: BrightnessSliderView?
+    /// SIGTERM/SIGINT/SIGHUP become a normal quit, so a held sub-floor level
+    /// is put back to the native floor (a SIGKILL is cleaned up at next launch).
+    private var signalSources: [DispatchSourceSignal] = []
 
     /// Menu previews are drawn at a fixed level, not the live one: at 0% the
     /// arc, pie and wedge all collapse to an empty disk and stop being tellable
@@ -54,8 +60,27 @@ final class App: NSObject, NSApplicationDelegate {
 
         if !tap.isTrusted { tap.requestTrust() }
         startTapIfPossible()
+        for sig in [SIGTERM, SIGINT, SIGHUP] {
+            signal(sig, SIG_IGN)
+            let source = DispatchSource.makeSignalSource(signal: sig, queue: .main)
+            source.setEventHandler { NSApp.terminate(nil) }
+            source.resume()
+            signalSources.append(source)
+        }
+        backlight.onExternalChange = { [weak self] in self?.levelChanged() }
+        backlight.restoreAfterLaunch()
         refreshIcon()
         reapplyTimeout()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        backlight.shutdown()
+    }
+
+    /// Keep the icon and an open menu's slider on the live level.
+    private func levelChanged() {
+        refreshIcon()
+        if let level = backlight.currentLevel() { sliderView?.update(level: level) }
     }
 
     /// System Settings can overwrite the inactivity timeout at any time (its
@@ -114,11 +139,12 @@ final class App: NSObject, NSApplicationDelegate {
         }
         guard let action = BacklightAction(rawValue: token) else { return false }
         let current = backlight.currentLevel() ?? 0
-        let next = LevelMath.nextLevel(
+        let next = BacklightLadder.next(
             current: current,
-            step: LevelMath.defaultStep,
-            direction: action.direction
+            direction: action.direction,
+            subFloor: backlight.supportsSubFloor
         )
+        log.info("key \(token, privacy: .public): \(current, privacy: .public) -> \(next, privacy: .public)")
         backlight.setLevel(next)
         refreshIcon()
         sliderView?.update(level: next)
@@ -140,7 +166,7 @@ final class App: NSObject, NSApplicationDelegate {
     }
 
     private func refreshIcon() {
-        let level = backlight.currentLevel() ?? 0
+        let level = BacklightLadder.displayFraction(backlight.currentLevel() ?? 0)
         let active = tap?.isRunning == true
         let icon: NSImage
         if active && !backlight.isSuppressed {

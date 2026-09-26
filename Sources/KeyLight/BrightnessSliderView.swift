@@ -5,6 +5,7 @@
 // Copyright (c) 2026 Nicholas Smith
 
 import AppKit
+import KeyLightCore
 
 /// The menu's first row: a "Backlight" label, a live percentage, and a slider
 /// that sets the keyboard backlight as it is dragged. Lives in an NSMenuItem's
@@ -67,7 +68,7 @@ final class BrightnessSliderView: NSView {
     }
 
     private func show(_ level: Double) {
-        percent.stringValue = "\(Int((level * 100).rounded()))%"
+        percent.stringValue = BacklightLadder.percentLabel(level)
     }
 
     @objc private func slid(_ sender: NSSlider) {
