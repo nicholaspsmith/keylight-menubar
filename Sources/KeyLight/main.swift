@@ -114,11 +114,7 @@ final class App: NSObject, NSApplicationDelegate {
         }
         guard let action = BacklightAction(rawValue: token) else { return false }
         let current = backlight.currentLevel() ?? 0
-        let next = LevelMath.nextLevel(
-            current: current,
-            step: LevelMath.defaultStep,
-            direction: action.direction
-        )
+        let next = BacklightLadder.next(current: current, direction: action.direction)
         backlight.setLevel(next)
         refreshIcon()
         sliderView?.update(level: next)

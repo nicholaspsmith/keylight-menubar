@@ -51,7 +51,7 @@ controller API are unchanged:
 
 `floorTicks` = first entry of the device-tree `nits-to-pwm-percentage-part2`
 table (little-endian 16.16 percent) × period (`high-period + low-period`),
-rounded. Falls back to 54 of 960 when absent or implausible (outside 2…200).
+rounded. Falls back to 54 of 960 when absent or implausible (a percentage outside 0.1–20).
 
 ## Hold state machine (`KeyLightCore.SubFloorHold`, pure, unit-tested)
 
