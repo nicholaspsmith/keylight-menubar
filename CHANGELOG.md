@@ -7,7 +7,7 @@ and publishes the section as the release notes; a push without one is refused.
 Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
-## [Unreleased]
+## [1.1.1] - 2026-09-26
 
 - docs: README shows the version and how releases carry the changelog
 
