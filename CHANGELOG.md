@@ -1,9 +1,11 @@
 # Changelog
 
-Every push to `main` is a release. Add a `## [X.Y.Z] - YYYY-MM-DD` section at
-the top (minor for features, patch for fixes); GitHub tags it and publishes
-the section as the release notes. Versions follow [Semantic
-Versioning](https://semver.org/).
+Every push to `main` is a release. Before pushing, add a `## [X.Y.Z] - YYYY-MM-DD`
+section at the top with `- ` entries (minor for features, patch for fixes); if an
+`## [Unreleased]` section is waiting, turn it into that section. GitHub tags it
+and publishes the section as the release notes; a push without one is refused.
+Versions follow [Semantic Versioning](https://semver.org/). The full rule:
+[StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
 ## [Unreleased]
 
@@ -11,37 +13,43 @@ Versioning](https://semver.org/).
 
 ## [1.1.0] - 2026-09-26
 
-- feat: keyboard backlight below macOS's floor, down to one PWM tick
-- feat(core): sub-floor ladder, PWM floor calibration, hold state machine
-- docs: sub-floor backlight design
-- feat: Backlight Timeout — the keys go dark after 1–5 s, 1–10 min, or never
+### Dimmer than macOS allows
+
+The keyboard backlight now goes below macOS's lowest level. Under 1/16, each press steps through macOS's floor (1/128) and then eight more levels KeyLight adds beneath it, down to a single PWM tick: 1/54 of the floor. Then off.
+
+macOS clamps every brightness above zero to its floor, so KeyLight holds these levels itself by steering CoreBrightness's own fade and reading the backlight's actual duty from the IO registry. The hardware keeps running at 25 kHz, so nothing flickers.
+
+While a sub-floor level is held:
+- **Backlight Timeout still works:** KeyLight runs the timeout itself with the same setting.
+- **Auto-brightness is paused,** and back on when you leave the sub-floor range or quit.
+- **A change made elsewhere wins:** Control Center or another app setting the backlight takes over.
+- **Quitting** leaves the keys at macOS's floor with everything restored; the level returns at the next launch. After a crash, the next launch cleans up first.
+
+The cost is a CoreBrightness preference flip about once a second at the lowest levels. Nothing extra runs at macOS's own levels.
+
+### Backlight Timeout
+
+**Menu ▸ Backlight Timeout** sets how long the keys stay lit without input: 1–5 seconds, 1, 2, 5 or 10 minutes, or never. System Settings only offers 5 seconds and up.
+
+### Also
+- SIGTERM, SIGINT and SIGHUP quit KeyLight cleanly.
+
+Merged in #3. Design notes: `docs/superpowers/specs/2026-09-25-sub-floor-backlight-design.md`.
 
 ## [1.0.0] - 2026-09-23
 
-- feat: the menu shows the version it was built from
-- feat: brightness and volume on third-party keyboards' F-keys, ctrl+F1/F2 for the backlight
-- test: the icon menu has led with the key mascot since it was added
-- LICENSE: name the copyright holder above the MPL text
-- License: Mozilla Public License 2.0
-- docs: document the --login flag
-- feat: --login on|off|status, and register Start at Login on install
-- docs: Curtain is now Barn
-- docs: Apollo Monitor described without the vendor name
-- docs: drop instructions that assume other software the reader may not use
-- docs: icon strip shows 0/25/75/100% instead of repeating the grey state
-- docs: the character menu-bar icon, rendered from code, and what its states mean
-- feat: brightness slider at the top of the menu
-- feat: Key icon — rays light with the backlight level (default; meters still available)
-- feat: app icon from the Menubarn mascot
-- docs: mention the Menubarn widget library
-- docs: why a standalone app beats a SwiftBar plugin
-- docs: add the Menubarn mascot to the README
-- Advertise the menu-bar suite
-- feat: yield the status item during a curtain peek
-- Let the user pick the menu-bar meter style
-- docs: spec the menu-bar icon style picker
-- Re-assert the tap each poll tick so other apps can't leapfrog it
-- Gray out the gauge while macOS suppresses the backlight
-- Use the default menu-bar color for the active status icon
-- docs: explain stable signing so Accessibility survives rebuilds
-- Initial commit: KeyLight — keyboard-backlight menu-bar app
+The first release of KeyLight, a standalone menu-bar app for the MacBook keyboard backlight. It replaces a BetterTouchTool setup.
+
+### Features
+- **Ctrl + brightness keys** step the keyboard backlight up and down in 1/16 steps; the display brightness doesn't change.
+- **Brightness slider** at the top of the menu.
+- **Third-party keyboards:** F1/F2 become brightness, F10–F12 mute and volume, as on an Apple keyboard, for non-Apple keyboards only. Ctrl + F1/F2 drive the backlight on any keyboard.
+- **Menu-bar icon:** a keycap whose rays light with the backlight level. Gauge, Arc, Pie or Wedge meters are available from **Icon**. The icon turns grey while macOS suppresses the backlight (lid closed) or Accessibility isn't granted.
+- **Start at Login** from the menu, or `KeyLight --login on|off|status`; the installer turns it on.
+- **Rebindable** backlight shortcuts in Preferences.
+- Steps aside while Barn reveals hidden menu-bar icons.
+- The event tap re-asserts itself every poll, so other apps can't leapfrog it.
+- Stable local code signing, so the Accessibility grant survives rebuilds.
+- The menu shows the version it was built from.
+
+Licensed under the Mozilla Public License 2.0.
