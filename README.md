@@ -14,6 +14,8 @@ menu-bar shell) and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit)
 (the global key-tap engine). Part of the
 [Menubarn](https://widgets.nicksmith.software) widget library.
 
+**Version 1.1.0** · [Changelog](https://github.com/nicholaspsmith/keylight-menubar/releases)
+
 ## What it does
 
 | Trigger (default) | Action |
@@ -193,6 +195,24 @@ swift run KeyLight     # run from the terminal (grant Accessibility to the binar
 ```
 
 Requires sibling checkouts of `StatusItemKit` and `HotkeyKit` next to this repo.
+
+
+### Releasing
+
+Versions are semantic (`vMAJOR.MINOR.PATCH`), cut from `main` at the merge
+commit of the feature's pull request, and every tag gets a
+[GitHub Release](https://github.com/nicholaspsmith/keylight-menubar/releases) whose
+notes are the changelog: what changed for someone using the app, plus a
+"Full changelog" compare link. There is no CHANGELOG file; the releases are it.
+
+```sh
+git tag -a vX.Y.Z -m "X.Y.Z" && git push origin vX.Y.Z
+gh release create vX.Y.Z --verify-tag --title "KeyLight X.Y.Z" --notes-file notes.md
+```
+
+The app stamps its version from the latest tag at build time (the menu's
+Version row), so rebuild after tagging. Update the version line at the top of
+this README with each release.
 
 ## Requirements
 
