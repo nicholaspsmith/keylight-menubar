@@ -10,89 +10,124 @@ import XCTest
 final class SubFloorHoldTests: XCTestCase {
     typealias Fade = SubFloorHold.Fade
     private let slow = SubFloorHold.slowMs
+    private func closing(_ distance: Double) -> Int32 { Int32(max(50, (distance / SubFloorHold.closingRate * 1000).rounded())) }
 
-    func testBand() {
-        let a = SubFloorHold(targetTicks: 36)
-        XCTAssertEqual(a.lower, 34); XCTAssertEqual(a.upper, 38)
-        let b = SubFloorHold(targetTicks: 1)
-        XCTAssertEqual(b.lower, 1); XCTAssertEqual(b.upper, 2)
-        let c = SubFloorHold(targetTicks: 11)
-        XCTAssertEqual(c.lower, 10); XCTAssertEqual(c.upper, 12)
+    func testDescentForTheBottomRung() {
+        let h = SubFloorHold(targetTicks: 1)
+        XCTAssertEqual(h.descentTicks, 0.8)
+        // From 1.5 at 0.2 ticks/s: a 7.5 s fade, turned back after 4 s.
+        XCTAssertEqual(h.descentFade.durationMs, 7500)
+        XCTAssertEqual(h.descentFade.seconds, 4.0, accuracy: 1e-9)
     }
 
-    func testApproachDownFromFloorThenSlowHoldWithNudge() {
-        var h = SubFloorHold(targetTicks: 11)
-        XCTAssertEqual(h.step(pwm: 54), [Fade(target: .off, durationMs: SubFloorHold.approachDownMs)])
+    func testDescentForAHighRungIsCappedByTheLongestFade() {
+        let h = SubFloorHold(targetTicks: 36)
+        XCTAssertEqual(h.descentTicks, 1.8, accuracy: 1e-9)
+        XCTAssertEqual(h.descentFade.durationMs, slow)
+        XCTAssertEqual(h.descentFade.seconds, 1.8 / (36.5 / 32.767), accuracy: 1e-6)
+    }
+
+    func testFarAboveApproachesFastThenClosesThenHolds() {
+        var h = SubFloorHold(targetTicks: 4)
+        XCTAssertEqual(h.step(pwm: 69, now: 0), [Fade(target: .off, durationMs: SubFloorHold.approachDownMs)])
         XCTAssertEqual(h.phase, .approaching(.off))
-        XCTAssertEqual(h.step(pwm: 30), [])
-        // Within 4 of the band's top: slow down toward off. Same target, so nudge first.
-        XCTAssertEqual(h.step(pwm: 16), [Fade(target: .floor, durationMs: slow), Fade(target: .off, durationMs: slow)])
-        XCTAssertEqual(h.phase, .holding(.off))
-    }
-
-    func testReversesAtBandEdges() {
-        var h = SubFloorHold(targetTicks: 11)
-        _ = h.step(pwm: 11) // in band: start holding downward
-        XCTAssertEqual(h.phase, .holding(.off))
-        XCTAssertEqual(h.step(pwm: 11), [])
-        XCTAssertEqual(h.step(pwm: 10), [Fade(target: .floor, durationMs: slow)])
+        XCTAssertEqual(h.step(pwm: 30, now: 0.1), [])
+        // Within 20 of the target: close at 20 ticks/s. Same target, so nudge first.
+        XCTAssertEqual(h.step(pwm: 24, now: 0.2), [Fade(target: .floor, durationMs: slow), Fade(target: .off, durationMs: closing(24))])
+        XCTAssertEqual(h.phase, .closing(.off))
+        XCTAssertEqual(h.step(pwm: 5, now: 1.0), [])
+        // Reached the target: climb slowly to T+0.5 for a clean start.
+        XCTAssertEqual(h.step(pwm: 4, now: 1.1), [Fade(target: .floor, durationMs: slow)])
         XCTAssertEqual(h.phase, .holding(.floor))
-        XCTAssertEqual(h.step(pwm: 11), [])
-        XCTAssertEqual(h.step(pwm: 12), [Fade(target: .off, durationMs: slow)])
-        XCTAssertEqual(h.phase, .holding(.off))
     }
 
-    func testApproachUpFromOff() {
+    func testHoldCycle() {
+        var h = SubFloorHold(targetTicks: 1, lastIssued: .floor)
+        XCTAssertEqual(h.step(pwm: 1, now: 0), [Fade(target: .off, durationMs: slow), Fade(target: .floor, durationMs: slow)])
+        XCTAssertEqual(h.phase, .holding(.floor))
+        XCTAssertEqual(h.step(pwm: 1, now: 0.2), [])
+        // Reading T+1: the value is T+0.5. Descend by the clock.
+        XCTAssertEqual(h.step(pwm: 2, now: 0.3), [Fade(target: .off, durationMs: 7500)])
+        XCTAssertEqual(h.phase, .holding(.off))
+        XCTAssertEqual(h.reverseAt ?? -1, 4.3, accuracy: 1e-9)
+        XCTAssertEqual(h.step(pwm: 1, now: 4.2), [])
+        XCTAssertEqual(h.step(pwm: 1, now: 4.3), [Fade(target: .floor, durationMs: slow)])
+        XCTAssertEqual(h.phase, .holding(.floor))
+        XCTAssertNil(h.reverseAt)
+        XCTAssertEqual(h.step(pwm: 2, now: 4.8), [Fade(target: .off, durationMs: 7500)])
+    }
+
+    func testNearAboveClosesDirectly() {
+        var h = SubFloorHold(targetTicks: 36, lastIssued: .floor)
+        XCTAssertEqual(h.step(pwm: 54, now: 0), [Fade(target: .off, durationMs: closing(54))])
+        XCTAssertEqual(h.phase, .closing(.off))
+    }
+
+    func testFarBelowApproachesUpFastThenClosesThenHolds() {
         var h = SubFloorHold(targetTicks: 36, lastIssued: .off)
-        XCTAssertEqual(h.step(pwm: 0), [Fade(target: .floor, durationMs: SubFloorHold.approachUpMs)])
-        XCTAssertEqual(h.step(pwm: 20), [])
-        XCTAssertEqual(h.step(pwm: 31), [Fade(target: .off, durationMs: slow), Fade(target: .floor, durationMs: slow)])
-        XCTAssertEqual(h.phase, .holding(.floor))
-    }
-
-    func testCloseBelowStartsSlowUpDirectly() {
-        var h = SubFloorHold(targetTicks: 1, lastIssued: .off)
-        XCTAssertEqual(h.step(pwm: 0), [Fade(target: .floor, durationMs: slow)])
-        XCTAssertEqual(h.phase, .holding(.floor))
-    }
-
-    func testDisabledPWMWhileHoldingRestartsApproach() {
-        var h = SubFloorHold(targetTicks: 11)
-        _ = h.step(pwm: 11)
-        XCTAssertEqual(h.step(pwm: 0), [Fade(target: .floor, durationMs: SubFloorHold.approachUpMs)])
+        XCTAssertEqual(h.step(pwm: 0, now: 0), [Fade(target: .floor, durationMs: SubFloorHold.approachUpMs)])
         XCTAssertEqual(h.phase, .approaching(.floor))
-    }
-
-    func testFarAboveWhileHoldingRestartsApproachWithNudge() {
-        var h = SubFloorHold(targetTicks: 11)
-        _ = h.step(pwm: 11) // holding(.off), last issued .off
-        XCTAssertEqual(h.step(pwm: 30), [Fade(target: .floor, durationMs: slow), Fade(target: .off, durationMs: SubFloorHold.approachDownMs)])
-        XCTAssertEqual(h.phase, .approaching(.off))
-    }
-
-    func testFarBelowWhileHoldingUpRestartsApproach() {
-        var h = SubFloorHold(targetTicks: 36)
-        _ = h.step(pwm: 36); _ = h.step(pwm: 34) // holding(.floor)
+        XCTAssertEqual(h.step(pwm: 10, now: 0.1), [])
+        XCTAssertEqual(h.step(pwm: 16, now: 0.2), [Fade(target: .off, durationMs: slow), Fade(target: .floor, durationMs: closing(54 - 16))])
+        XCTAssertEqual(h.phase, .closing(.floor))
+        XCTAssertEqual(h.step(pwm: 36, now: 1.2), [Fade(target: .off, durationMs: slow), Fade(target: .floor, durationMs: slow)])
         XCTAssertEqual(h.phase, .holding(.floor))
-        XCTAssertEqual(h.step(pwm: 20), [Fade(target: .off, durationMs: slow), Fade(target: .floor, durationMs: SubFloorHold.approachUpMs)])
+    }
+
+    func testFromOffToOneTickClosesUpGently() {
+        var h = SubFloorHold(targetTicks: 1, lastIssued: .off)
+        XCTAssertEqual(h.step(pwm: 0, now: 0), [Fade(target: .floor, durationMs: closing(54))])
+        XCTAssertEqual(h.phase, .closing(.floor))
+        XCTAssertEqual(h.step(pwm: 1, now: 0.1), [Fade(target: .off, durationMs: slow), Fade(target: .floor, durationMs: slow)])
+        XCTAssertEqual(h.phase, .holding(.floor))
+    }
+
+    func testClosingUsesFloorTicksForUpwardDistance() {
+        var h = SubFloorHold(targetTicks: 30, floorTicks: 108, lastIssued: .off)
+        XCTAssertEqual(h.step(pwm: 20, now: 0), [Fade(target: .floor, durationMs: closing(88))])
+    }
+
+    func testDisabledPWMWhileHoldingRestartsFromBelow() {
+        var h = SubFloorHold(targetTicks: 11, lastIssued: .floor)
+        _ = h.step(pwm: 11, now: 0); _ = h.step(pwm: 12, now: 0.1) // descending
+        XCTAssertEqual(h.step(pwm: 0, now: 0.2), [Fade(target: .floor, durationMs: closing(54))])
+        XCTAssertEqual(h.phase, .closing(.floor))
+    }
+
+    func testFarAboveWhileHoldingRestarts() {
+        var h = SubFloorHold(targetTicks: 11, lastIssued: .floor)
+        _ = h.step(pwm: 11, now: 0); _ = h.step(pwm: 12, now: 0.1) // holding(.off), last issued .off
+        XCTAssertEqual(h.step(pwm: 40, now: 0.2), [Fade(target: .floor, durationMs: slow), Fade(target: .off, durationMs: SubFloorHold.approachDownMs)])
+        XCTAssertEqual(h.phase, .approaching(.off))
+        XCTAssertNil(h.reverseAt)
+    }
+
+    func testFarBelowWhileHoldingUpRestarts() {
+        var h = SubFloorHold(targetTicks: 36, lastIssued: .off)
+        _ = h.step(pwm: 36, now: 0) // holding(.floor)
+        XCTAssertEqual(h.phase, .holding(.floor))
+        XCTAssertEqual(h.step(pwm: 20, now: 0.1), [Fade(target: .off, durationMs: slow), Fade(target: .floor, durationMs: closing(34))])
+        XCTAssertEqual(h.phase, .closing(.floor))
     }
 
     func testDarkAndWake() {
-        var h = SubFloorHold(targetTicks: 7)
-        _ = h.step(pwm: 7)
+        var h = SubFloorHold(targetTicks: 7, lastIssued: .floor)
+        _ = h.step(pwm: 7, now: 0); _ = h.step(pwm: 8, now: 0.1) // descending
         XCTAssertEqual(h.goDark(), [Fade(target: .floor, durationMs: slow), Fade(target: .off, durationMs: SubFloorHold.darkMs)])
         XCTAssertEqual(h.phase, .dark)
-        XCTAssertEqual(h.step(pwm: 3), [], "dark ignores the PWM")
+        XCTAssertNil(h.reverseAt)
+        XCTAssertEqual(h.step(pwm: 3, now: 10), [], "dark ignores the PWM")
         XCTAssertEqual(h.goDark(), [], "already dark")
         h.wake()
-        XCTAssertEqual(h.step(pwm: 0), [Fade(target: .floor, durationMs: SubFloorHold.approachUpMs)])
+        XCTAssertEqual(h.step(pwm: 0, now: 11), [Fade(target: .floor, durationMs: closing(54))])
     }
 
     func testRetargetKeepsLastIssued() {
-        var h = SubFloorHold(targetTicks: 11)
-        _ = h.step(pwm: 11) // last issued .off
+        var h = SubFloorHold(targetTicks: 11, lastIssued: .floor)
+        _ = h.step(pwm: 11, now: 0); _ = h.step(pwm: 12, now: 0.1) // last issued .off
         h.retarget(ticks: 4)
         XCTAssertNil(h.phase)
-        XCTAssertEqual(h.step(pwm: 11), [Fade(target: .floor, durationMs: slow), Fade(target: .off, durationMs: SubFloorHold.approachDownMs)])
+        XCTAssertNil(h.reverseAt)
+        XCTAssertEqual(h.step(pwm: 11, now: 0.2), [Fade(target: .floor, durationMs: slow), Fade(target: .off, durationMs: closing(11))])
     }
 }

@@ -19,9 +19,10 @@ PWM 54/960 on the M5 Pro) down to the lowest duty the hardware will hold lit,
   daemon is already heading for is ignored.
 - Each set to 0 writes the persisted `KeyboardBacklightMuted` preference and
   each positive set clears it; committed sets also write the manual level.
-- Holding: alternate slow fades toward 0 and toward the floor, reversing at
-  the edges of a small band. Measured 1–54 ticks held with a ±1–2 tick band,
-  at about 0.3 Hz, PWM never disabled, no visible flicker or breathing.
+- Holding: alternate slow fades toward 0 and toward the floor. 1–54 ticks
+  can be held with the PWM never disabled and no visible flicker or
+  breathing (checked by eye at 3–54 ticks; 1 and 2 ticks held without the
+  PWM switching off).
 - A fast retarget loop (20 Hz) also works but writes the Muted preference 40
   times a second, so it is rejected.
 
@@ -55,23 +56,38 @@ rounded. Falls back to 54 of 960 when absent or implausible (a percentage outsid
 
 ## Hold state machine (`KeyLightCore.SubFloorHold`, pure, unit-tested)
 
-Input: observed PWM ticks (0 when the PWM is disabled). Output: fade commands,
-each `(target: .off | .floor, durationMs)`.
+Input: observed PWM ticks (0 when the PWM is disabled) and a monotonic
+clock. Output: fade commands, each `(target: .off | .floor, durationMs)`.
 
-- Band: `h = max(1, round(T * 0.05))`, `lower = max(1, T - h)`, `upper = T + h`.
-- Approach: far from the band, fade fast (down 1500 ms, up 500 ms) until
-  within 4 ticks of the band edge, then switch to the slow hold (32767 ms)
-  in the same direction.
-- Hold: heading down reverses at `p <= lower`; heading up reverses at
-  `p >= upper`. More than 6 ticks outside the band, or PWM disabled,
-  restarts the approach.
+The PWM register shows the fade's value **rounded**, so reading T means the
+value is in T±0.5. A first version held an integer band [T−h, T+h] and
+reversed at its edges; because the slow descent's speed scales with the
+distance to 0, the bottom rung read 2 ticks 99% of the time. What shipped:
+
+- **Approach**: more than 20 ticks away, a fast fade (down 1500 ms, up
+  500 ms).
+- **Closing**: within 20 ticks, a fade at 20 ticks/s, slow enough to stop on
+  one tick, until the reading reaches T.
+- **Hold, climbing**: slow fade to the floor (32767 ms); reverse the moment
+  the reading becomes T+1, i.e. the value just crossed T+0.5.
+- **Hold, descending**: the reading would change too late (at T−0.5, and
+  below 0.5 the LEDs go dark), so reverse by dead reckoning. The descent fade
+  starts at T+0.5 at 0.2 ticks/s (or faster, if the 32.8 s cap forces it), so
+  its speed is known; turn back after `max(0.8, 0.05·T)` ticks by the clock.
+- A closing descent hands over to a climb first, so every timed descent
+  starts cleanly at T+0.5.
+- More than 6 ticks off target, or PWM disabled, restarts the approach.
 - A command whose target equals the last issued target is preceded by a slow
   fade to the other target, because the daemon drops same-target fades.
 
+Measured with the app: each rung reads its target 85–98% of the time (the
+bottom rung reads 1 tick 96%), with 0.5–0.9 reversals per second.
+
 ## Driver (`KeyLight.SubFloorDriver`, AppKit side)
 
-A timer ticks every 10 ms while approaching, 100 ms while holding or idle-off,
-1 s while paused. Each tick reads the PWM from IORegistry and feeds the
+A timer ticks every 10 ms while approaching, closing or climbing, at the
+reversal time (at most 100 ms) while descending, 100 ms while dark, and 1 s
+while paused. Each tick reads the PWM from IORegistry and feeds the
 state machine. It only exists while a sub-floor level is set.
 
 ## Caveats and how each is handled
@@ -86,8 +102,10 @@ state machine. It only exists while a sub-floor level is set.
 - **External changes.** The daemon's brightness readback while parked is
   always one of our two targets (0 or 1/128). Anything else means another app
   or Control Center set a level: the driver unparks without touching the
-  backlight and KeyLight adopts the new level. (A change to exactly 0 or
-  1/128 is indistinguishable and is not detected.)
+  backlight, restores auto-brightness, then sets the new level again (turning
+  auto-brightness back on would otherwise recompute over it), and KeyLight
+  adopts it. (A change to exactly 0 or 1/128 is indistinguishable and is not
+  detected.)
 - **Lid closed / system sleep.** Lid state from `AppleClamshellState` on
   `IOPMrootDomain`, sleep from `NSWorkspace` notifications. The driver pauses
   and re-approaches on resume. While parked, "suppressed" means lid closed
@@ -97,10 +115,12 @@ state machine. It only exists while a sub-floor level is set.
 - **Crash.** A restore record (prior auto-brightness state) is written to
   UserDefaults on park and cleared on unpark. At launch, a leftover record is
   applied: idle dimming resumed, auto-brightness restored.
-- **Launch.** A saved parked level is re-applied if the daemon still reads
-  0 or the floor (nobody changed it since); otherwise it is dropped.
+- **Launch.** A saved parked level is re-applied. It exists only if KeyLight
+  was holding it at quit; any other level change clears it. (Checking the
+  daemon's level first does not work: quitting restores auto-brightness,
+  which moves it.)
 - **Cost.** Nothing at native levels. While parked: one no-commit IPC call and
-  one Muted preference flip per reversal (every few seconds), a readback per
+  one Muted preference flip per reversal (0.5–0.9 a second), a readback per
   tick, and IORegistry reads.
 
 ## Refactor

@@ -60,6 +60,13 @@ final class BacklightLadderTests: XCTestCase {
         XCTAssertEqual(next(fromFloat, .up), rung(7), accuracy: 1e-12)
     }
 
+    // Without a readable PWM there is no hold, so the ladder stops at the floor.
+    func testWithoutSubFloorTheFloorStepsToOff() {
+        XCTAssertEqual(BacklightLadder.next(current: floor, direction: .down, subFloor: false), 0)
+        XCTAssertEqual(BacklightLadder.next(current: 0, direction: .up, subFloor: false), floor, accuracy: 1e-12)
+        XCTAssertEqual(BacklightLadder.next(current: step, direction: .down, subFloor: false), floor, accuracy: 1e-12)
+    }
+
     // Classification and conversions.
     func testIsSubFloor() {
         XCTAssertFalse(BacklightLadder.isSubFloor(0))

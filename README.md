@@ -18,7 +18,7 @@ menu-bar shell) and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit)
 
 | Trigger (default) | Action |
 |-------------------|--------|
-| `Ctrl + Brightness Up` | keyboard backlight up one step (1/16) |
+| `Ctrl + Brightness Up` | keyboard backlight up one step |
 | `Ctrl + Brightness Down` | keyboard backlight down one step |
 | `Ctrl + F2` / `Ctrl + F1` | the same, for keyboards whose F1/F2 are plain F-keys |
 
@@ -26,6 +26,44 @@ The original brightness key is swallowed, so the display brightness doesn't
 change. The menu-bar gauge tracks the level; rebind either control in
 Preferences. The menu's first row is a brightness slider, so the backlight can
 also be set by dragging.
+
+### Dimmer than macOS allows
+
+Above 1/16 each press is a 1/16 step. Below that the steps are 1/16, then
+macOS's own lowest level (1/128), then eight more KeyLight adds under it, then
+off:
+
+| Step | PWM duty (ticks of 960) | vs. macOS's lowest |
+|------|-------------------------|--------------------|
+| 1/128 (macOS floor) | 54 | 1× |
+| KeyLight | 36, 24, 16, 11, 7, 4, 2 | ⅔× … 1/27× |
+| KeyLight lowest | 1 | 1/54× |
+
+macOS clamps every brightness above zero to its floor, so KeyLight holds
+these levels itself. CoreBrightness fades every change through every duty on
+the way, and KeyLight steers that fade: slow fades toward off and toward the
+floor, turning back as the PWM register reaches the target (read from the IO
+registry). Each rung reads its target 85–98% of the time. The hardware PWM
+stays at 25 kHz throughout, so nothing flickers.
+
+While a KeyLight level is held:
+
+- **Backlight Timeout still works.** macOS's own timeout is suspended and
+  KeyLight runs it instead with the same setting, fading out after that long
+  without input and back in on the next.
+- **Auto-brightness is paused** so ambient light can't move the level, and
+  turned back on when you leave the KeyLight range or quit.
+- **A change made elsewhere wins.** If Control Center or another app sets
+  the backlight, KeyLight lets go and follows it.
+- **Lid closed or asleep** pauses the hold. It resumes on wake.
+- **Quitting** leaves the keys at macOS's floor with everything restored,
+  and the level comes back at the next launch. After a crash, the next launch
+  restores the timeout and auto-brightness first.
+
+The cost is one CoreBrightness call and one flip of its `KeyboardBacklightMuted`
+preference each time the fade turns, about once or twice a second at the lowest
+rungs. None of this runs at macOS's own levels. Macs whose PWM KeyLight cannot
+read skip the extra steps.
 
 ### Third-party keyboards
 
@@ -91,6 +129,14 @@ each row previews itself, and the choice persists across launches.
   (`setIdleDimTime:forKeyboard:`, seconds, 0 = never). The keyboard id is discovered via
   `copyKeyboardBacklightIDs` (never hardcoded). When the backlight is suppressed
   (clamshell / lid closed), sets no-op — the app handles this gracefully.
+  Sub-floor levels use `setBrightness:fadeSpeed:commit:forKeyboard:` (the
+  "speed" is the fade's length in ms, about 32.8 s at most, and a fade to the
+  target already being faded to is ignored), `suspendIdleDimming:forKeyboard:`
+  and `enableAutoBrightness:forKeyboard:`.
+- **The PWM** is read from the `kbd-backlight` IO registry entry
+  (`high-period`, `enabled`); its floor comes from the
+  `nits-to-pwm-percentage-part2` calibration table. Design notes:
+  `docs/superpowers/specs/2026-09-25-sub-floor-backlight-design.md`.
 
 ## Install
 
@@ -142,7 +188,7 @@ it on, and the command has to be the *installed* binary. A bare `--login`, or
 
 ```sh
 swift build           # compile
-swift test            # KeyLightCore unit tests (level math, binding persistence)
+swift test            # KeyLightCore unit tests (ladder, sub-floor hold, bindings)
 swift run KeyLight     # run from the terminal (grant Accessibility to the binary)
 ```
 

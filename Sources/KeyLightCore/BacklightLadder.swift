@@ -33,20 +33,23 @@ public enum BacklightLadder {
     /// `Float`; the closest two rungs differ by about 1.4e-4.
     static let epsilon = 1e-7
 
-    public static func next(current: Double, direction: Direction) -> Double {
+    /// The level one key press away. `subFloor: false` leaves out the rungs
+    /// below the native floor, for a Mac whose PWM KeyLight cannot read.
+    public static func next(current: Double, direction: Direction, subFloor: Bool = true) -> Double {
         let c = max(0, min(1, current))
+        let below = subFloor ? subFloorLevels : []
         switch direction {
         case .up:
             if c < linearStep - epsilon {
                 // Off, sub-floor, or native between the floor and 1/16:
                 // the next rung above, in ascending order.
-                let rungs = subFloorLevels.reversed() + [nativeFloor, linearStep]
+                let rungs = below.reversed() + [nativeFloor, linearStep]
                 return rungs.first { $0 > c + epsilon } ?? linearStep
             }
             return min(1, c + linearStep)
         case .down:
             if c > linearStep + epsilon { return max(linearStep, c - linearStep) }
-            let rungs = [nativeFloor] + subFloorLevels + [0]
+            let rungs = [nativeFloor] + below + [0]
             return rungs.first { $0 < c - epsilon } ?? 0
         }
     }
