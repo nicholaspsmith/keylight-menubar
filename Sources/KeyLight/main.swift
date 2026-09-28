@@ -166,6 +166,11 @@ final class App: NSObject, NSApplicationDelegate {
     }
 
     private func refreshIcon() {
+        // Nothing to control, nothing on the bar: no backlight API on this Mac,
+        // or the lid is shut (clamshell on an external display). Not the
+        // backlight's own "suppressed" flag — that is also up during every idle
+        // fade and in a bright room, and the icon would come and go with them.
+        status.isSuppressed = !backlight.isAvailable || Clamshell.isClosed
         let level = BacklightLadder.displayFraction(backlight.currentLevel() ?? 0)
         let active = tap?.isRunning == true
         let icon: NSImage
