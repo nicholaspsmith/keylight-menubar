@@ -8,8 +8,9 @@ without one is refused (`[no release]` in the tip commit is the only exception).
 Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
-## [Unreleased]
+## [1.1.1] - 2026-09-28
 
+- `install.sh` now asks whether to turn on Start at Login (skipped when it is already on, or when there is no terminal to ask in) instead of turning it on unasked, then relaunches the app, quitting any running copy first so the new build takes over
 - docs: README shows the version and how releases carry the changelog
 
 ## [1.1.0] - 2026-09-26
