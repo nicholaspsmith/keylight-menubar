@@ -8,6 +8,11 @@ without one is refused (`[no release]` in the tip commit is the only exception).
 Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
+## [1.2.1] - 2026-09-29
+
+- Fixed: after the keyboard backlight turned off from inactivity, KeyLight's slider and hotkeys did nothing until a key was pressed. Adjusting now relights the keys, and they turn off again once the timeout passes with no input
+- Fixed: the menu said "Backlight suppressed (lid closed)" with the lid open whenever macOS had turned the backlight off for inactivity; it now says that only when the lid is actually closed, and shows the slider otherwise
+
 ## [1.2.0] - 2026-09-28
 
 - The menu-bar icon hides itself while there is no keyboard backlight to control — lid closed on an external display, or no backlight API — and comes back when there is

@@ -199,7 +199,9 @@ final class App: NSObject, NSApplicationDelegate {
 
         if !backlight.isAvailable {
             menu.addItem(disabledItem("Backlight control unavailable"))
-        } else if backlight.isSuppressed {
+        } else if Clamshell.isClosed {
+            // Only a shut lid. The daemon's own flag is also up while it
+            // idle-dims, and then the slider has to stay: moving it relights.
             menu.addItem(disabledItem("Backlight suppressed (lid closed)"))
         } else {
             // A slider row: drag to set the level; the hotkeys keep working too.

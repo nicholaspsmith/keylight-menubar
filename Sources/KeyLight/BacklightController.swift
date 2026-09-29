@@ -4,6 +4,7 @@
 //
 // Copyright (c) 2026 Nicholas Smith
 
+import CoreGraphics
 import Foundation
 import KeyLightCore
 
@@ -35,6 +36,8 @@ protocol BacklightController: AnyObject {
 final class CoreBrightnessBacklight: BacklightController {
     private let client: CoreBrightnessClient
     private let driver: SubFloorDriver?
+    private var wake = AdjustWake()
+    private var wakeTimer: Timer?
 
     var onExternalChange: (() -> Void)?
 
@@ -67,11 +70,55 @@ final class CoreBrightnessBacklight: BacklightController {
     func setLevel(_ level: Double) -> Bool {
         let v = min(1.0, max(0.0, level))
         if BacklightLadder.isSubFloor(v), let driver {
+            // The driver suspends idle dimming and runs the timeout itself.
+            stopWake()
             driver.park(level: v)
             return true
         }
         driver?.unpark(before: Float(v))
+        if wake.userAdjusted(lidClosed: Clamshell.isClosed) {
+            // The suspension outlives this process; the record lets the next
+            // launch undo it after a crash.
+            UserDefaults.standard.set(true, forKey: Self.wakeSuspendedKey)
+            client.suspendIdleDimming(true)
+            startWakeTimer()
+        }
         return client.setBrightness(Float(v))
+    }
+
+    // MARK: - Adjusting counts as activity
+
+    private func startWakeTimer() {
+        wakeTimer?.invalidate()
+        let t = Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in self?.wakeTick() }
+        // .common, so it keeps running while the menu's slider is dragged.
+        RunLoop.main.add(t, forMode: .common)
+        wakeTimer = t
+    }
+
+    private func wakeTick() {
+        let idle = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: CGEventType(rawValue: ~0)!)
+        if wake.tick(idleSeconds: idle, timeout: client.idleDimTime() ?? 0, lidClosed: Clamshell.isClosed) {
+            resumeIdleDimming()
+            wakeTimer?.invalidate()
+            wakeTimer = nil
+        }
+    }
+
+    private static let wakeSuspendedKey = "adjustWakeSuspendedIdleDimming"
+
+    private func resumeIdleDimming() {
+        client.suspendIdleDimming(false)
+        UserDefaults.standard.removeObject(forKey: Self.wakeSuspendedKey)
+    }
+
+    /// Drop the hold without resuming: the sub-floor driver owns idle dimming now.
+    private func stopWake() {
+        // The driver keeps its own crash record for the suspension it inherits.
+        if wake.isHolding { UserDefaults.standard.removeObject(forKey: Self.wakeSuspendedKey) }
+        wake.cancel()
+        wakeTimer?.invalidate()
+        wakeTimer = nil
     }
 
     func idleDimTime() -> Double? { client.idleDimTime() }
@@ -79,8 +126,15 @@ final class CoreBrightnessBacklight: BacklightController {
     @discardableResult
     func setIdleDimTime(_ seconds: Double) -> Bool { client.setIdleDimTime(seconds) }
 
-    func restoreAfterLaunch() { driver?.restoreAfterLaunch() }
-    func shutdown() { driver?.shutdown() }
+    func restoreAfterLaunch() {
+        if UserDefaults.standard.bool(forKey: Self.wakeSuspendedKey) { resumeIdleDimming() }
+        driver?.restoreAfterLaunch()
+    }
+    func shutdown() {
+        if wake.isHolding { resumeIdleDimming() }
+        stopWake()
+        driver?.shutdown()
+    }
 }
 
 /// Fallback when no backlight API is available — the app stays alive and no-ops.
