@@ -14,7 +14,7 @@ menu-bar shell) and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit)
 (the global key-tap engine). Part of the
 [Menubarn](https://widgets.nicksmith.software) widget library.
 
-**Version 1.1.0** · [Changelog](https://github.com/nicholaspsmith/keylight-menubar/releases)
+**Version 1.2.1** · [Changelog](https://github.com/nicholaspsmith/keylight-menubar/releases)
 
 ## What it does
 
@@ -96,7 +96,10 @@ remapped; those stay whatever the board sends.
 
 **menu ▸ Backlight Timeout** sets how long the keys stay lit with nobody
 typing before macOS turns them off — 1, 2, 3, 4 or 5 seconds, 1, 2, 5 or 10
-minutes, or Never. The next keypress lights them again. This is the same
+minutes, or Never. The next keypress lights them again, and so does moving
+KeyLight's slider or pressing its hotkeys: an adjustment counts as activity,
+and the keys go dark again once the timeout passes with no input at all
+(external keyboard and mouse included). This is the same
 setting as System Settings ▸ Keyboard ▸ *Turn keyboard backlight off after …
 of inactivity*, which only offers 5 seconds and up; macOS accepts any delay,
 so KeyLight just offers the short ones too. The checkmark shows the live
@@ -130,7 +133,10 @@ each row previews itself, and the choice persists across launches.
   the built-in keyboard backlight and its inactivity timeout
   (`setIdleDimTime:forKeyboard:`, seconds, 0 = never). The keyboard id is discovered via
   `copyKeyboardBacklightIDs` (never hardcoded). When the backlight is suppressed
-  (clamshell / lid closed), sets no-op — the app handles this gracefully.
+  (clamshell / lid closed, or idle-dimmed), sets no-op. So a KeyLight
+  adjustment calls `suspendIdleDimming:forKeyboard:`, which relights the keys,
+  and resumes it after the timeout passes with no input. The suspension
+  outlives the process, so a crash record lets the next launch undo it.
   Sub-floor levels use `setBrightness:fadeSpeed:commit:forKeyboard:` (the
   "speed" is the fade's length in ms, about 32.8 s at most, and a fade to the
   target already being faded to is ignored), `suspendIdleDimming:forKeyboard:`
