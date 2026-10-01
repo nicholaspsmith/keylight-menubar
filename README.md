@@ -1,6 +1,6 @@
 # KeyLight
 
-<p align="center"><img src="docs/mascot.png" width="160" alt="KeyLight mascot, from the Menubarn widget library"></p>
+<p align="center"><img src="docs/mascot.png" width="160" alt="KeyLight mascot, from Menumon"></p>
 
 A tiny standalone macOS menu-bar app that remaps **Ctrl + the brightness keys**
 to **keyboard-backlight** up/down — a drop-in replacement for using
@@ -12,7 +12,7 @@ lets you rebind the two backlight controls.
 Built on [StatusItemKit](https://github.com/nicholaspsmith/StatusItemKit) (the
 menu-bar shell) and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit)
 (the global key-tap engine). Part of the
-[Menubarn](https://widgets.nicksmith.software) widget library.
+[Menumon](https://menumon.nicksmith.software).
 
 **Version 1.2.1** · [Changelog](https://github.com/nicholaspsmith/keylight-menubar/releases)
 
