@@ -8,6 +8,10 @@ without one is refused (`[no release]` in the tip commit is the only exception).
 Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
+## [1.3.0] - 2026-10-01
+
+- Lumen's menu-bar icon is now his illustrated keycap; the rays light up with the backlight level
+
 ## [1.2.1] - 2026-09-29
 
 - Fixed: after the keyboard backlight turned off from inactivity, KeyLight's slider and hotkeys did nothing until a key was pressed. Adjusting now relights the keys, and they turn off again once the timeout passes with no input

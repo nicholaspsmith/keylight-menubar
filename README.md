@@ -14,7 +14,7 @@ menu-bar shell) and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit)
 (the global key-tap engine). Part of the
 [Menumon](https://menumon.nicksmith.software).
 
-**Version 1.2.1** · [Changelog](https://github.com/nicholaspsmith/keylight-menubar/releases)
+**Version 1.3.0** · [Changelog](https://github.com/nicholaspsmith/keylight-menubar/releases)
 
 ## What it does
 
@@ -111,7 +111,8 @@ re-applied at each launch, since System Settings can overwrite it.
 
 ![The menu-bar icon](docs/menubar-icon.png)
 
-A keycap in sunglasses whose rays light up clockwise with the backlight, shown
+Lumen, the illustrated keycap in sunglasses from the app icon, whose rays (drawn live
+around him) light up clockwise with the backlight, shown
 above at 0%, 25%, 75% and 100%: grey when the backlight is off, all eight rays
 at full, and the first ray comes on at 1% so the key is never dark while the
 backlight is on. It also turns grey when KeyLight cannot change the backlight
