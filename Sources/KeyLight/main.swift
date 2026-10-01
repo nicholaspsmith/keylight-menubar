@@ -155,9 +155,14 @@ final class App: NSObject, NSApplicationDelegate {
 
     /// All four meters share a `(fraction:color:)` signature, so the style is a
     /// pure swap — the suppressed/untrusted coloring below is unaffected.
+    private static let keycap = IllustratedIcon.load(named: "lumen-keycap", in: .main)
+
     private func makeIcon(_ style: IconStyle, fraction: CGFloat, color: NSColor) -> NSImage {
         switch style {
-        case .key: return CharacterIcon.key(level: fraction, active: color == .black)
+        case .key:
+            // Lumen's illustrated keycap ships in the bundle; if it is ever missing, the code-drawn key stands in.
+            if let keycap = Self.keycap { return CharacterIcon.lumen(keycap: keycap, level: fraction, active: color == .black) }
+            return CharacterIcon.key(level: fraction, active: color == .black)
         case .gauge: return MeterIcon.gauge(fraction: fraction, color: color)
         case .arc: return MeterIcon.arc(fraction: fraction, color: color)
         case .pie: return MeterIcon.pie(fraction: fraction, color: color)
