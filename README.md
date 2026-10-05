@@ -231,10 +231,6 @@ the hook on a fresh clone. See
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one)
 for the whole rule.
 
-## Why not a SwiftBar plugin?
-
-A standalone `.app` built on [StatusItemKit](https://github.com/nicholaspsmith/StatusItemKit) needs no SwiftBar, has a real AppKit menu instead of rendered stdout, updates on events instead of a re-run timer, and keeps its place in the bar. Intercepting the brightness keys needs a `CGEventTap`, which a plugin script cannot own at all. The full comparison is in [StatusItemKit's README](https://github.com/nicholaspsmith/StatusItemKit#why-not-swiftbar).
-
 ## The menu-bar suite
 
 A suite of macOS menu-bar apps that share one framework, one build-and-sign
