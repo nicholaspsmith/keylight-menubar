@@ -130,7 +130,7 @@ Lumen is grey when the backlight is off, and also when KeyLight cannot change
 it (Accessibility not granted, or the lid is closed); the menu says which.
 **Icon** switches to a plain meter.
 
-Once a minute, while the backlight is on, a gleam sweeps once round Lumen's
+Now and then, while the backlight is on, a gleam sweeps once round Lumen's
 rays (1.2 s), each lit ray flaring and the unlit ones glowing faintly as it
 passes. When several Menumon mascots are running they take turns, a second
 apart: Archimedes (Claude Usage), Menu Pimp (Mac Daddy), Carol (SoundChain),
