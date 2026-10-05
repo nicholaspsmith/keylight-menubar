@@ -2,6 +2,8 @@
 
 <p align="center"><img src="docs/mascot.png" width="160" alt="KeyLight mascot, from Menumon"></p>
 
+<p align="center"><img src="docs/animation.png" alt="Lumen's gleam sweeping round his rays"></p>
+
 A standalone macOS menu-bar app that remaps **Ctrl + the brightness keys** to
 **keyboard-backlight** up/down, and gives **third-party keyboards** the
 brightness and volume keys an Apple keyboard has on F1/F2 and F10–F12. The
