@@ -12,7 +12,7 @@ menu-bar shell) and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit)
 (the global key-tap engine). Part of
 [Menumon](https://menumon.nicksmith.software).
 
-**Version 1.3.0** · [Changelog](https://github.com/nicholaspsmith/keylight-menubar/releases)
+**Version 1.4.0** · [Changelog](https://github.com/nicholaspsmith/keylight-menubar/releases)
 
 ## Requirements
 
@@ -127,6 +127,15 @@ so the icon is never dark while the backlight is on; all eight are lit at full.
 Lumen is grey when the backlight is off, and also when KeyLight cannot change
 it (Accessibility not granted, or the lid is closed); the menu says which.
 **Icon** switches to a plain meter.
+
+Once a minute, while the backlight is on, a gleam sweeps once round Lumen's
+rays (1.2 s), each lit ray flaring and the unlit ones glowing faintly as it
+passes. When several Menumon mascots are running they take turns, a second
+apart: Archimedes (Claude Usage), Menu Pimp (Mac Daddy), Carol (SoundChain),
+Iguanamous (VPN & DNS), Armonitor (Monitor Lizard), Volta (Battery Time),
+Apollo (Apollo Monitor), then Lumen, Manny (MacRecorder) and Gertie
+(Homestead), counting only the ones that are running. Skipped when Reduce
+Motion is on.
 
 ## How it works
 

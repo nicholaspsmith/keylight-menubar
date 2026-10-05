@@ -32,6 +32,20 @@ final class App: NSObject, NSApplicationDelegate {
     /// SIGTERM/SIGINT/SIGHUP become a normal quit, so a held sub-floor level
     /// is put back to the native floor (a SIGKILL is cleaned up at next launch).
     private var signalSources: [DispatchSourceSignal] = []
+    /// Lumen's once-a-minute shimmer, in his turn with the other mascots: a
+    /// gleam sweeps once round his rays. Only the Lumen icon, and only while
+    /// the backlight is on and KeyLight can drive it.
+    private var minuteCue: MinuteCue!
+    /// The level the icon last showed lit, or nil when it showed grey or off;
+    /// the shimmer redraws from this rather than asking CoreBrightness 60 times a second.
+    private var litLevel: CGFloat?
+    private lazy var shimmer = IconAnimation(duration: CharacterIcon.lumenShimmerDuration, frame: { [weak self] t in
+        guard let self, let keycap = Self.keycap, let level = self.litLevel else { return }
+        let progress = CGFloat(t / CharacterIcon.lumenShimmerDuration)
+        self.status.setIcon(CharacterIcon.lumen(keycap: keycap, level: level, active: true, shimmer: progress))
+    }, completion: { [weak self] in
+        self?.refreshIcon()
+    })
 
     /// Menu previews are drawn at a fixed level, not the live one: at 0% the
     /// arc, pie and wedge all collapse to an empty disk and stop being tellable
@@ -71,6 +85,12 @@ final class App: NSObject, NSApplicationDelegate {
         backlight.restoreAfterLaunch()
         refreshIcon()
         reapplyTimeout()
+
+        minuteCue = MinuteCue { [weak self] in
+            guard let self, self.iconStyle == .key, Self.keycap != nil, self.litLevel != nil else { return }
+            self.shimmer.start()
+        }
+        minuteCue.start()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -186,6 +206,7 @@ final class App: NSObject, NSApplicationDelegate {
             // (so the conventional black ink is fine); the level still reads from
             // the drawn geometry against the faint 28%-alpha track.
             icon = makeIcon(iconStyle, fraction: CGFloat(level), color: .black)
+            litLevel = level > 0 ? CGFloat(level) : nil
             // The key is full colour (its lit rays are the level); the meters are templates.
             icon.isTemplate = iconStyle != .key
         } else {
@@ -195,6 +216,13 @@ final class App: NSObject, NSApplicationDelegate {
             // the menu says which ("⚠ Grant Accessibility…" / "Backlight
             // suppressed (lid closed)").
             icon = makeIcon(iconStyle, fraction: CGFloat(level), color: .systemGray)
+            litLevel = nil
+        }
+        // Mid-shimmer, the next frame picks up the new level; if Lumen went grey,
+        // off or away, the shimmer stops and the icon says so at once.
+        if shimmer.isRunning {
+            guard litLevel == nil || iconStyle != .key else { return }
+            shimmer.cancel()
         }
         status.setIcon(icon)
     }
