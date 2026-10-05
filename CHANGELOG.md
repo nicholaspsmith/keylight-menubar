@@ -8,6 +8,10 @@ without one is refused (`[no release]` in the tip commit is the only exception).
 Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
+## [1.4.0] - 2026-10-05
+
+- Once a minute, while the backlight is on, a gleam sweeps round Lumen's rays: each lit ray flares as it passes and the unlit ones glow faintly. He takes his turn after Apollo when several Menumon mascots are running, and sits still under Reduce Motion
+
 ## [1.3.0] - 2026-10-01
 
 - Lumen's menu-bar icon is now his illustrated keycap; the rays light up with the backlight level
