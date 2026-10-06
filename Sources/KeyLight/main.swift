@@ -254,34 +254,29 @@ final class App: NSObject, NSApplicationDelegate {
             menu.addItem(actionItem("⚠ Grant Accessibility…", #selector(grantTrust)))
         }
 
-        menu.addItem(.separator())
-        menu.addItem(actionItem("Preferences…", #selector(openPrefs), key: ","))
+        SettingsMenu.addFooter(to: menu, appName: "KeyLight", items: { sub in
+            sub.addItem(self.actionItem("Preferences…", #selector(self.openPrefs), key: ","))
 
-        // Third-party boards send F1–F12 as plain F-keys; this gives them the
-        // brightness / mute / volume keys an Apple keyboard has there.
-        let fkeys = actionItem("Function Keys on Other Keyboards", #selector(toggleFunctionKeys))
-        fkeys.state = model.functionKeysOnOtherKeyboards ? .on : .off
-        fkeys.toolTip = "F1/F2 brightness, F10/F11/F12 mute and volume on keyboards that aren't Apple's"
-        menu.addItem(fkeys)
+            // Third-party boards send F1–F12 as plain F-keys; this gives them the
+            // brightness / mute / volume keys an Apple keyboard has there.
+            let fkeys = self.actionItem("Function Keys on Other Keyboards", #selector(self.toggleFunctionKeys))
+            fkeys.state = self.model.functionKeysOnOtherKeyboards ? .on : .off
+            fkeys.toolTip = "F1/F2 brightness, F10/F11/F12 mute and volume on keyboards that aren't Apple's"
+            sub.addItem(fkeys)
 
-        // How long the keys stay lit with nobody typing. macOS owns the timer
-        // and relights on the next keypress; this only sets the delay.
-        let timeout = NSMenuItem(title: "Backlight Timeout", action: nil, keyEquivalent: "")
-        timeout.submenu = buildTimeoutMenu()
-        timeout.toolTip = "Turn the backlight off after this long without input; it comes back on the next keypress"
-        menu.addItem(timeout)
+            // How long the keys stay lit with nobody typing. macOS owns the timer
+            // and relights on the next keypress; this only sets the delay.
+            let timeout = NSMenuItem(title: "Backlight Timeout", action: nil, keyEquivalent: "")
+            timeout.submenu = self.buildTimeoutMenu()
+            timeout.toolTip = "Turn the backlight off after this long without input; it comes back on the next keypress"
+            sub.addItem(timeout)
 
-        let icon = NSMenuItem(title: "Icon", action: nil, keyEquivalent: "")
-        icon.submenu = buildIconMenu()
-        menu.addItem(icon)
-
-        let login = actionItem("Start at Login", #selector(toggleLogin))
-        login.state = LoginItem.isEnabled ? .on : .off
-        menu.addItem(login)
-
-        menu.addItem(.separator())
-        menu.addItem(AppVersion.menuItem())
-        menu.addItem(actionItem("Quit KeyLight", #selector(quit), key: "q"))
+            // KeyLight's own meter-style picker (not StatusItemKit's
+            // AppearanceMenu), so it rides with the app's settings.
+            let icon = NSMenuItem(title: "Icon", action: nil, keyEquivalent: "")
+            icon.submenu = self.buildIconMenu()
+            sub.addItem(icon)
+        })
     }
 
     /// One row per meter style, each previewing itself. Rebuilt on every menu
@@ -362,9 +357,6 @@ final class App: NSObject, NSApplicationDelegate {
         model.functionKeysOnOtherKeyboards.toggle()
     }
 
-    @objc private func toggleLogin() { LoginItem.toggle() }
-
-    @objc private func quit() { NSApp.terminate(nil) }
 }
 
 // MARK: - Entry point
