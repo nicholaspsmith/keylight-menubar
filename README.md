@@ -1,6 +1,6 @@
 # KeyLight
 
-<p align="center"><img src="docs/mascot.png" width="160" alt="KeyLight mascot, from Menumon"></p>
+<p align="center"><img src="docs/mascot.png" width="160" alt="Lumen, KeyLight's menu-bar character, on its app icon"></p>
 
 <p align="center"><img src="docs/animation.png" alt="Lumen's gleam sweeping round his rays"></p>
 
