@@ -259,10 +259,14 @@ final class App: NSObject, NSApplicationDelegate {
 
             // Third-party boards send F1–F12 as plain F-keys; this gives them the
             // brightness / mute / volume keys an Apple keyboard has there.
-            let fkeys = self.actionItem("Function Keys on Other Keyboards", #selector(self.toggleFunctionKeys))
-            fkeys.state = self.model.functionKeysOnOtherKeyboards ? .on : .off
-            fkeys.toolTip = "F1/F2 brightness, F10/F11/F12 mute and volume on keyboards that aren't Apple's"
-            sub.addItem(fkeys)
+            // A keep-open checkbox: ticking it leaves the menu up.
+            sub.addItem(ToggleMenuItem.make(
+                title: "Function Keys on Other Keyboards",
+                isOn: self.model.functionKeysOnOtherKeyboards,
+                toolTip: "F1/F2 brightness, F10/F11/F12 mute and volume on keyboards that aren't Apple's"
+            ) { [weak self] on in
+                self?.model.functionKeysOnOtherKeyboards = on
+            })
 
             // How long the keys stay lit with nobody typing. macOS owns the timer
             // and relights on the next keypress; this only sets the delay.
@@ -351,10 +355,6 @@ final class App: NSObject, NSApplicationDelegate {
         else { return }
         backlight.setIdleDimTime(timeout.seconds)
         BacklightTimeoutStore.save(timeout, to: .standard)
-    }
-
-    @objc private func toggleFunctionKeys() {
-        model.functionKeysOnOtherKeyboards.toggle()
     }
 
 }
