@@ -62,8 +62,14 @@ macOS clamps any brightness above zero to its floor, so KeyLight holds these
 levels itself. CoreBrightness fades each change through every duty on the way;
 KeyLight starts slow fades toward off or toward the floor and reverses them as
 the PWM register (read from the IO registry) reaches the target. Each rung
-reads its target 85–98% of the time. The hardware PWM stays at 25 kHz, so
-nothing flickers.
+reads its target 85–98% of the time. The hardware PWM stays at 25 kHz.
+
+**Known bug:** because KeyLight holds these levels by steering macOS's fades
+rather than setting the duty directly, a held sub-floor level shows a slight
+flicker. It's tracked in
+[#20](https://github.com/nicholaspsmith/keylight-menubar/issues/20); a fix
+needs a way to set the duty past macOS's floor clamp, and pull requests that
+find one are welcome.
 
 While a KeyLight level is held:
 
