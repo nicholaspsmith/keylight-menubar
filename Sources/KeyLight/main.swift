@@ -24,6 +24,9 @@ final class App: NSObject, NSApplicationDelegate {
     private let backlight = makeBacklightController()
     private let model = BindingsModel()
     private var tap: HotkeyTap!
+    /// The same F-key remap in the HID driver, where Safari's Secure Event
+    /// Input can't hide the keys from it.
+    private let hidRemapper = HIDKeyRemapper()
     private var prefs: PreferencesWindowController?
     private var trustTimer: Timer?
     private var iconStyle = IconStyleStore.load(from: .standard)
@@ -58,6 +61,7 @@ final class App: NSObject, NSApplicationDelegate {
             pollInterval: 5,
             onPoll: { [weak self] in
                 self?.reassertTap()
+                self?.syncHIDRemap()
                 self?.refreshIcon()
             },
             onBuildMenu: { [weak self] menu in self?.buildMenu(menu) }
@@ -70,7 +74,11 @@ final class App: NSObject, NSApplicationDelegate {
             bindings: model.tapBindings,
             onMatch: { [weak self] token in self?.handle(token: token) ?? false }
         )
-        model.onChange = { [weak self] bindings in self?.tap.setBindings(bindings) }
+        model.onChange = { [weak self] bindings in
+            self?.tap.setBindings(bindings)
+            self?.syncHIDRemap()
+        }
+        syncHIDRemap()
 
         if !tap.isTrusted { tap.requestTrust() }
         startTapIfPossible()
@@ -95,6 +103,11 @@ final class App: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         backlight.shutdown()
+        hidRemapper.sync(enabled: false)
+    }
+
+    private func syncHIDRemap() {
+        hidRemapper.sync(enabled: model.functionKeysOnOtherKeyboards)
     }
 
     /// Keep the icon and an open menu's slider on the live level.

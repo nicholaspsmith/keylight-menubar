@@ -112,6 +112,14 @@ It applies only to non-Apple keyboards (identified per event from the sending
 HID device), so `fn + F1` on the MacBook keyboard is still F1. Mission
 Control, Spotlight and media-transport keys are not remapped.
 
+The remap happens twice. KeyLight sets a HID key mapping on each non-Apple
+keyboard (what `hidutil property --set UserKeyMapping` does), so the keyboard
+itself sends the Apple media keys. This works even under Secure Event Input,
+which Safari and password fields turn on and which stops event taps seeing
+plain key presses. The event-tap remap above stays as a fallback for the few
+seconds before a newly connected keyboard is picked up. KeyLight clears the
+mapping when you turn the setting off or quit.
+
 ### Backlight timeout
 
 **Settings ▸ Backlight Timeout** sets how long the keys stay lit with nobody typing before
