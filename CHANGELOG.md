@@ -8,6 +8,10 @@ without one is refused (`[no release]` in the tip commit is the only exception).
 Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
+## [1.6.0] - 2026-10-07
+
+- No user-visible changes.
+
 ## [1.5.3] - 2026-10-06
 
 - Function Keys on Other Keyboards now works in Safari and password fields: F1/F2 brightness and F10–F12 mute/volume on a third-party keyboard are remapped in the keyboard driver, where Secure Event Input can't block them
