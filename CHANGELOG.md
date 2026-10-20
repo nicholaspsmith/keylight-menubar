@@ -8,6 +8,10 @@ without one is refused (`[no release]` in the tip commit is the only exception).
 Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
+## [1.13.0] - 2026-10-20
+
+- Menu bar icons now update with significantly less CPU usage, reducing background activity while the app is running.
+
 ## [1.12.0] - 2026-10-15
 
 - The menu bar owl icon now supports custom pupil colors, allowing you to choose a color instead of the default green-to-red gradient.
