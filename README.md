@@ -42,9 +42,9 @@ change. Rebind either backlight control in **Settings ▸ Preferences…**.
   - **Preferences…** (⌘,) — rebind the two backlight controls.
   - **Function Keys on Other Keyboards** — see [Third-party keyboards](#third-party-keyboards).
   - **Backlight Timeout ▸** — see [Backlight timeout](#backlight-timeout).
-  - **Icon ▸** — Key (default), Gauge, Arc, Pie or Wedge; each row previews
-    itself and the choice persists.
   - **Start at Login**, then the version.
+- **Icon ▸** — Key (default), Gauge, Arc, Pie or Wedge; each row previews
+  itself and the choice persists.
 - **Quit KeyLight** (⌘Q).
 
 ### Dimmer than macOS allows
@@ -144,7 +144,7 @@ backlight (shown above at 0%, 25%, 75% and 100%). The first ray comes on at 1%,
 so the icon is never dark while the backlight is on; all eight are lit at full.
 Lumen is grey when the backlight is off, and also when KeyLight cannot change
 it (Accessibility not granted, or the lid is closed); the menu says which.
-**Settings ▸ Icon** switches to a plain meter.
+**Icon ▸** (below Settings) switches to a plain meter.
 
 Now and then, while the backlight is on, a gleam sweeps once round Lumen's
 rays (1.2 s), each lit ray flaring and the unlit ones glowing faintly as it

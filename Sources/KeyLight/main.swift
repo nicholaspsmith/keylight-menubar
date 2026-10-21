@@ -287,12 +287,12 @@ final class App: NSObject, NSApplicationDelegate {
             timeout.submenu = self.buildTimeoutMenu()
             timeout.toolTip = "Turn the backlight off after this long without input; it comes back on the next keypress"
             sub.addItem(timeout)
-
+        }, belowSettings: { menu in
             // KeyLight's own meter-style picker (not StatusItemKit's
-            // AppearanceMenu), so it rides with the app's settings.
+            // AppearanceMenu), in the main menu right below Settings.
             let icon = NSMenuItem(title: "Icon", action: nil, keyEquivalent: "")
             icon.submenu = self.buildIconMenu()
-            sub.addItem(icon)
+            menu.addItem(icon)
         })
     }
 
