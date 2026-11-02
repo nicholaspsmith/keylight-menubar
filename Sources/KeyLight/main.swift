@@ -29,7 +29,15 @@ final class App: NSObject, NSApplicationDelegate {
     private let hidRemapper = HIDKeyRemapper()
     private var prefs: PreferencesWindowController?
     private var trustTimer: Timer?
-    private var iconStyle = IconStyleStore.load(from: .standard)
+    /// The menu-bar icon style, chosen in the Preferences window.
+    private lazy var iconChoice = IconChoice(
+        style: IconStyleStore.load(from: .standard),
+        preview: { [unowned self] style in self.makeIcon(style, fraction: Self.previewFraction, color: .black) },
+        onChange: { [weak self] style in
+            IconStyleStore.save(style, to: .standard)
+            self?.refreshIcon()
+        })
+    private var iconStyle: IconStyle { iconChoice.style }
     /// The slider in the open menu, if any, so hotkey presses keep it in step.
     private weak var sliderView: BrightnessSliderView?
     /// SIGTERM/SIGINT/SIGHUP become a normal quit, so a held sub-floor level
@@ -50,10 +58,9 @@ final class App: NSObject, NSApplicationDelegate {
         self?.refreshIcon()
     })
 
-    /// Menu previews are drawn at a fixed level, not the live one: at 0% the
+    /// Icon previews are drawn at a fixed level, not the live one: at 0% the
     /// arc, pie and wedge all collapse to an empty disk and stop being tellable
-    /// apart — exactly when someone adjusting the backlight opens the menu. The
-    /// preview's job is the shape; the level is on the menu's first row.
+    /// apart. The preview's job is the shape, not the level.
     private static let previewFraction: CGFloat = 0.6
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -267,9 +274,9 @@ final class App: NSObject, NSApplicationDelegate {
             menu.addItem(actionItem("⚠ Grant Accessibility…", #selector(grantTrust)))
         }
 
-        // No Settings submenu: Function Keys on Other Keyboards, Start at Login
-        // and the version live in the Preferences window. The menu keeps the
-        // things you reach for: timeout, Preferences…, Icon, Quit.
+        // No Settings submenu: the icon style, Function Keys on Other Keyboards,
+        // Start at Login and the version live in the Preferences window. The
+        // menu keeps the things you reach for: timeout, Preferences…, Quit.
         if menu.items.last?.isSeparatorItem == false { menu.addItem(.separator()) }
 
         // How long the keys stay lit with nobody typing. macOS owns the timer
@@ -281,32 +288,9 @@ final class App: NSObject, NSApplicationDelegate {
 
         menu.addItem(actionItem("Preferences…", #selector(openPrefs), key: ","))
 
-        // KeyLight's own meter-style picker (not StatusItemKit's AppearanceMenu).
-        let icon = NSMenuItem(title: "Icon", action: nil, keyEquivalent: "")
-        icon.submenu = buildIconMenu()
-        menu.addItem(icon)
-
         let quit = NSMenuItem(title: "Quit KeyLight", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         quit.target = NSApp
         menu.addItem(quit)
-    }
-
-    /// One row per meter style, each previewing itself. Rebuilt on every menu
-    /// open, so the checkmark always reflects the live choice.
-    private func buildIconMenu() -> NSMenu {
-        let menu = NSMenu()
-        for style in IconStyle.allCases {
-            let item = actionItem(style.label, #selector(selectIcon(_:)))
-            item.representedObject = style.rawValue
-            item.state = style == iconStyle ? .on : .off
-            // Native 18pt: resizing would re-run the drawing handler in a
-            // smaller rect while MeterIcon's radii stay put, clipping the glyph.
-            let preview = makeIcon(style, fraction: Self.previewFraction, color: .black)
-            preview.isTemplate = true
-            item.image = preview
-            menu.addItem(item)
-        }
-        return menu
     }
 
     /// One row per timeout. The checkmark reads the live value from macOS
@@ -344,17 +328,8 @@ final class App: NSObject, NSApplicationDelegate {
     }
 
     @objc private func openPrefs() {
-        if prefs == nil { prefs = PreferencesWindowController(model: model) }
+        if prefs == nil { prefs = PreferencesWindowController(model: model, iconChoice: iconChoice) }
         prefs?.show()
-    }
-
-    @objc private func selectIcon(_ sender: NSMenuItem) {
-        guard let raw = sender.representedObject as? String,
-              let style = IconStyle(rawValue: raw)
-        else { return }
-        iconStyle = style
-        IconStyleStore.save(style, to: .standard)
-        refreshIcon()
     }
 
     @objc private func selectTimeout(_ sender: NSMenuItem) {
