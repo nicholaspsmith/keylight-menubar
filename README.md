@@ -35,17 +35,25 @@ change. Rebind either backlight control in **Preferences…** (⌘, from the men
 
 ### The menu
 
+<p align="center"><img src="docs/menu.png" width="240" alt="KeyLight's menu: the Backlight slider, then Backlight Timeout, Preferences… and Quit KeyLight"></p>
+
 - **Brightness slider** — drag to set the backlight. Replaced by a disabled
   row when the backlight is unavailable or the lid is closed.
 - **⚠ Grant Accessibility…** — shown only while the key tap is not trusted.
 - **Backlight Timeout ▸** — see [Backlight timeout](#backlight-timeout).
-- **Preferences…** (⌘,) — opens the Preferences window:
-  - the two backlight shortcuts, each with Record and Reset;
-  - **Menu Bar Icon** — Key (default), Gauge, Arc, Pie or Wedge; each tile
-    previews itself and the choice persists;
-  - **Function Keys on Other Keyboards** — see [Third-party keyboards](#third-party-keyboards);
-  - **Start at Login**, then the version.
+- **Preferences…** (⌘,) — opens the Preferences window, below.
 - **Quit KeyLight** (⌘Q).
+
+### Preferences
+
+<p align="center"><img src="docs/preferences.png" width="592" alt="KeyLight's Preferences window: the two backlight shortcuts, the Menu Bar Icon tiles, Function Keys on Other Keyboards, Start at Login and the version"></p>
+
+- **Keyboard Backlight Shortcuts** — Record a new trigger for backlight up or
+  down; Reset puts back the default.
+- **Menu Bar Icon** — Key (default), Gauge, Arc, Pie or Wedge. Each tile
+  previews itself and the choice persists.
+- **Function Keys on Other Keyboards** — see [Third-party keyboards](#third-party-keyboards).
+- **Start at Login**, then the version.
 
 ### Dimmer than macOS allows
 
@@ -94,7 +102,7 @@ Macs whose PWM KeyLight cannot read skip the extra levels.
 
 An Apple keyboard's F1/F2 and F10–F12 send brightness and volume as media
 keys. A generic Bluetooth or USB board sends plain F1–F12, which macOS ignores
-(or worse: F11 shows the desktop). With **Preferences… ▸ Function Keys on Other Keyboards**
+(or worse: F11 shows the desktop). With **Function Keys on Other Keyboards** (in Preferences)
 on (the default), KeyLight sends the media key an Apple keyboard would:
 
 | Key on a non-Apple keyboard | Becomes |
@@ -144,7 +152,7 @@ backlight (shown above at 0%, 25%, 75% and 100%). The first ray comes on at 1%,
 so the icon is never dark while the backlight is on; all eight are lit at full.
 Lumen is grey when the backlight is off, and also when KeyLight cannot change
 it (Accessibility not granted, or the lid is closed); the menu says which.
-**Menu Bar Icon** in the Preferences window switches to a plain meter.
+**Menu Bar Icon** in [Preferences](#preferences) switches to a plain meter.
 
 Now and then, while the backlight is on, a gleam sweeps once round Lumen's
 rays (1.2 s), each lit ray flaring and the unlit ones glowing faintly as it
@@ -217,7 +225,7 @@ open ~/Applications/KeyLight.app
 
 ### Start at Login (optional)
 
-Toggle it from **Start at Login** in the Preferences window, or from the shell:
+Toggle it from **Start at Login** in [Preferences](#preferences), or from the shell:
 
 ```sh
 "$HOME/Applications/KeyLight.app/Contents/MacOS/KeyLight" --login on       # or: off, status
