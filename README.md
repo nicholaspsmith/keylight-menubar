@@ -150,7 +150,7 @@ Now and then, while the backlight is on, a gleam sweeps once round Lumen's
 rays (1.2 s), each lit ray flaring and the unlit ones glowing faintly as it
 passes. When several Menumon mascots are running they take turns, a second
 apart: Archimedes (Claude Usage), Menu Pimp (Mac Daddy), Carol (SoundChain),
-Iguanamous (VPN & DNS), Armonitor (Monitor Lizard), Volta (Battery Time),
+Iguanamous (VPN & DNS), Armonitor (Panes), Volta (Battery Time),
 Apollo (Apollo Monitor), then Lumen, Manny (MacRecorder) and Gertie
 (Homestead), counting only the ones that are running. Skipped when Reduce
 Motion is on.
@@ -272,9 +272,8 @@ common **Icon** picker, and cooperative hiding so no icon strands another.
 | [VPN & DNS](https://github.com/nicholaspsmith/vpn-dns-menubar) | An iguana for Mullvad + Tailscale state, with a DNS watcher |
 | [Mac Daddy](https://github.com/nicholaspsmith/mac-daddy-menubar) | Kills media trackers, trashes stale downloads, reaps hung processes, watches the UA mixer engine, and sweats as your process count climbs |
 | **KeyLight** | Ctrl+brightness keys remapped to keyboard backlight |
-| [Monitor Lizard](https://github.com/nicholaspsmith/monitor-lizard-menubar) | External-monitor brightness, contrast and resolution, Night Shift, and the built-in screen from dimmer than macOS allows to XDR |
 | [Homestead](https://github.com/nicholaspsmith/home-assistant-menubar) | Home Assistant dashboards and device controls in the menu |
-| [Panes](https://github.com/nicholaspsmith/panes-menubar) | Window tiling on ⌘⌥ shortcuts, a grid in the menu, and drag-to-edge snapping |
+| [Panes](https://github.com/nicholaspsmith/panes-menubar) | Window shortcuts, a layout grid and edge snapping, plus external-monitor brightness and contrast, the built-in screen from dimmer than macOS allows to XDR, and Night Shift |
 | [SoundChain](https://github.com/nicholaspsmith/soundchain-menubar) | One chain of Audio Unit effects over all system audio |
 | [Menu Crane](https://github.com/nicholaspsmith/menu-crane) | A ⌘Space launcher for apps, arithmetic, unit conversions and emoji |
 | [MacRecorder](https://github.com/nicholaspsmith/MacRecorder) | Screen recording with system audio |
