@@ -23,7 +23,7 @@ final class BindingsModel: ObservableObject {
     var onChange: (([Binding]) -> Void)?
 
     /// F1/F2/F10/F11/F12 → brightness / mute / volume on non-Apple keyboards.
-    var functionKeysOnOtherKeyboards: Bool {
+    @Published var functionKeysOnOtherKeyboards: Bool {
         didSet {
             UserDefaults.standard.set(functionKeysOnOtherKeyboards, forKey: Self.functionKeysKey)
             recompute()

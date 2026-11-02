@@ -14,7 +14,7 @@ menu-bar shell) and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit)
 (the global key-tap engine). Part of
 [Menumon](https://menumon.nicksmith.software).
 
-**Version 1.13.1** · [Changelog](https://github.com/nicholaspsmith/keylight-menubar/releases)
+**Version 1.16.0** · [Changelog](https://github.com/nicholaspsmith/keylight-menubar/releases)
 
 ## Requirements
 
@@ -31,17 +31,17 @@ menu-bar shell) and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit)
 | `Ctrl + F2` / `Ctrl + F1` | the same, for keyboards whose F1/F2 are plain F-keys |
 
 The original brightness key is swallowed, so display brightness does not
-change. Rebind either backlight control in **Settings ▸ Preferences…**.
+change. Rebind either backlight control in **Preferences…** (⌘, from the menu).
 
 ### The menu
 
 - **Brightness slider** — drag to set the backlight. Replaced by a disabled
   row when the backlight is unavailable or the lid is closed.
 - **⚠ Grant Accessibility…** — shown only while the key tap is not trusted.
-- **Settings ▸** (StatusItemKit's `SettingsMenu`)
-  - **Preferences…** (⌘,) — rebind the two backlight controls.
-  - **Function Keys on Other Keyboards** — see [Third-party keyboards](#third-party-keyboards).
-  - **Backlight Timeout ▸** — see [Backlight timeout](#backlight-timeout).
+- **Backlight Timeout ▸** — see [Backlight timeout](#backlight-timeout).
+- **Preferences…** (⌘,) — opens the Preferences window:
+  - the two backlight shortcuts, each with Record and Reset;
+  - **Function Keys on Other Keyboards** — see [Third-party keyboards](#third-party-keyboards);
   - **Start at Login**, then the version.
 - **Icon ▸** — Key (default), Gauge, Arc, Pie or Wedge; each row previews
   itself and the choice persists.
@@ -94,7 +94,7 @@ Macs whose PWM KeyLight cannot read skip the extra levels.
 
 An Apple keyboard's F1/F2 and F10–F12 send brightness and volume as media
 keys. A generic Bluetooth or USB board sends plain F1–F12, which macOS ignores
-(or worse: F11 shows the desktop). With **Settings ▸ Function Keys on Other Keyboards**
+(or worse: F11 shows the desktop). With **Preferences… ▸ Function Keys on Other Keyboards**
 on (the default), KeyLight sends the media key an Apple keyboard would:
 
 | Key on a non-Apple keyboard | Becomes |
@@ -122,7 +122,7 @@ mapping when you turn the setting off or quit.
 
 ### Backlight timeout
 
-**Settings ▸ Backlight Timeout** sets how long the keys stay lit with nobody typing before
+**Backlight Timeout ▸** in the menu sets how long the keys stay lit with nobody typing before
 macOS turns them off: 1–5 seconds, 1, 2, 5 or 10 minutes, or Never. A keypress
 relights them, and so does moving KeyLight's slider or pressing its hotkeys;
 the keys go dark again once the timeout passes with no input at all (external
@@ -144,7 +144,7 @@ backlight (shown above at 0%, 25%, 75% and 100%). The first ray comes on at 1%,
 so the icon is never dark while the backlight is on; all eight are lit at full.
 Lumen is grey when the backlight is off, and also when KeyLight cannot change
 it (Accessibility not granted, or the lid is closed); the menu says which.
-**Icon ▸** (below Settings) switches to a plain meter.
+**Icon ▸** (below Preferences…) switches to a plain meter.
 
 Now and then, while the backlight is on, a gleam sweeps once round Lumen's
 rays (1.2 s), each lit ray flaring and the unlit ones glowing faintly as it
@@ -217,7 +217,7 @@ open ~/Applications/KeyLight.app
 
 ### Start at Login (optional)
 
-Toggle it from **Settings ▸ Start at Login** in the menu, or from the shell:
+Toggle it from **Start at Login** in the Preferences window, or from the shell:
 
 ```sh
 "$HOME/Applications/KeyLight.app/Contents/MacOS/KeyLight" --login on       # or: off, status
