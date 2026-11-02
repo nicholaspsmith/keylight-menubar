@@ -8,6 +8,12 @@ without one is refused (`[no release]` in the tip commit is the only exception).
 Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
+## [1.18.0] - 2026-11-02
+
+### Changed
+
+- The icon picker moves from the menu's Icon ▸ into the Preferences window, as Menu Bar Icon: one tile per style (Key, Gauge, Arc, Pie, Wedge), each previewing itself. The menu is now the slider, Backlight Timeout ▸, Preferences… and Quit KeyLight
+
 ## [1.17.0] - 2026-11-02
 
 - No user-visible changes.

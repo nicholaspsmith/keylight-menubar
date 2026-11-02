@@ -30,10 +30,75 @@ final class RecorderModel: ObservableObject {
     }
 }
 
+/// The menu-bar icon style, shared by the status item and the Preferences
+/// window. `preview` draws a style the way the bar would, at a fixed level.
+final class IconChoice: ObservableObject {
+    @Published var style: IconStyle {
+        didSet { if style != oldValue { onChange(style) } }
+    }
+    let preview: (IconStyle) -> NSImage
+    private let onChange: (IconStyle) -> Void
+
+    init(style: IconStyle, preview: @escaping (IconStyle) -> NSImage, onChange: @escaping (IconStyle) -> Void) {
+        self.style = style
+        self.preview = preview
+        self.onChange = onChange
+    }
+}
+
+/// One tile per icon style, each previewing itself; the chosen one is outlined.
+struct IconPicker: View {
+    @ObservedObject var choice: IconChoice
+
+    var body: some View {
+        HStack(spacing: 8) {
+            ForEach(IconStyle.allCases, id: \.self) { style in
+                let selected = choice.style == style
+                Button { choice.style = style } label: {
+                    VStack(spacing: 6) {
+                        preview(style)
+                            .frame(height: 22)
+                        Text(style.label)
+                            .font(.caption)
+                    }
+                    .frame(width: 64, height: 52)
+                    .contentShape(Rectangle())
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(selected ? Color.accentColor.opacity(0.18) : Color.primary.opacity(0.05))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(selected ? Color.accentColor : Color.clear, lineWidth: 2)
+                    )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(style.label)
+                .accessibilityAddTraits(selected ? .isSelected : [])
+            }
+        }
+    }
+
+    /// Native size: scaling would re-run the drawing handler in another rect
+    /// while MeterIcon's radii stay put. Lumen's keycap is in colour, as on the
+    /// bar; the meters are templates, tinted to the text colour.
+    private func preview(_ style: IconStyle) -> some View {
+        let image = choice.preview(style)
+        return Group {
+            if style == .key {
+                Image(nsImage: image)
+            } else {
+                Image(nsImage: image).renderingMode(.template).foregroundColor(.primary)
+            }
+        }
+    }
+}
+
 /// One row per binding: action label, current trigger, Record + Reset. Generic
 /// over `model.bindings`, so adding a mappable control later needs no UI change.
 struct PreferencesView: View {
     @ObservedObject var model: BindingsModel
+    let iconChoice: IconChoice
     @StateObject private var recorder = RecorderModel()
     @State private var startAtLogin = LoginItem.isEnabled
 
@@ -67,6 +132,11 @@ struct PreferencesView: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+
+            Divider()
+            Text("Menu Bar Icon")
+                .font(.headline)
+            IconPicker(choice: iconChoice)
 
             Divider()
             Text("General")
@@ -109,12 +179,16 @@ struct PreferencesView: View {
 final class PreferencesWindowController {
     private var window: NSWindow?
     private let model: BindingsModel
+    private let iconChoice: IconChoice
 
-    init(model: BindingsModel) { self.model = model }
+    init(model: BindingsModel, iconChoice: IconChoice) {
+        self.model = model
+        self.iconChoice = iconChoice
+    }
 
     func show() {
         if window == nil {
-            let host = NSHostingController(rootView: PreferencesView(model: model))
+            let host = NSHostingController(rootView: PreferencesView(model: model, iconChoice: iconChoice))
             let win = NSWindow(contentViewController: host)
             win.title = "KeyLight Preferences"
             win.styleMask = [.titled, .closable]
