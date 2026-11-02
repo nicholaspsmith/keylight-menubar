@@ -8,6 +8,13 @@ without one is refused (`[no release]` in the tip commit is the only exception).
 Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
+## [1.16.0] - 2026-11-02
+
+### Changed
+
+- The Settings submenu is gone. The menu is now the slider, then Backlight Timeout ▸, Preferences… (⌘,), Icon ▸ and Quit KeyLight
+- Function Keys on Other Keyboards, Start at Login and the version move into the Preferences window, under General
+
 ## [1.15.0] - 2026-11-01
 
 - No user-visible changes.

@@ -7,6 +7,7 @@
 import AppKit
 import HotkeyKit
 import KeyLightCore
+import StatusItemKit
 import SwiftUI
 
 /// Drives a `TriggerRecorder` and exposes which token (if any) is currently
@@ -34,6 +35,7 @@ final class RecorderModel: ObservableObject {
 struct PreferencesView: View {
     @ObservedObject var model: BindingsModel
     @StateObject private var recorder = RecorderModel()
+    @State private var startAtLogin = LoginItem.isEnabled
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -65,7 +67,35 @@ struct PreferencesView: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+
+            Divider()
+            Text("General")
+                .font(.headline)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Toggle("Function Keys on Other Keyboards", isOn: $model.functionKeysOnOtherKeyboards)
+                Text("F1/F2 brightness, F10/F11/F12 mute and volume on keyboards that aren't Apple's.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            // macOS refuses when the app isn't in an Applications folder:
+            // LoginItem.set shows why, and the box snaps back to the real state.
+            Toggle("Start at Login", isOn: Binding(
+                get: { startAtLogin },
+                set: { on in
+                    LoginItem.set(on)
+                    startAtLogin = LoginItem.isEnabled
+                }
+            ))
+
+            Divider()
+            Text("Version \(AppVersion.string)")
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
+        .onAppear { startAtLogin = LoginItem.isEnabled }
         .padding(20)
         .frame(width: 480)
     }
