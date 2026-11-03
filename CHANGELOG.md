@@ -8,6 +8,15 @@ without one is refused (`[no release]` in the tip commit is the only exception).
 Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
+## [1.21.0] - 2026-11-03
+
+- The status dot in the keep-open menu now aligns with other items instead of shifting the title to the right.
+- Long menu rows with a status dot are no longer clipped at the end.
+- The Settings submenu has been replaced by a standard Preferences window (⌘,) with a grouped form layout.
+- Selecting an option in the keep-open menu no longer closes the menu, allowing for easier multiple selections.
+- Menu sections can now be folded away using a chevron heading.
+- Read-only information rows in the menu are now always displayed in grey text.
+
 ## [1.20.0] - 2026-11-03
 
 - KeyLight Preferences now matches Mac Daddy's and the other Menumon apps' window: a grouped form with General first (Start at Login, Function Keys on Other Keyboards), then the backlight shortcuts and the Menu Bar Icon tiles, with the version centred at the foot. Esc or ⌘W closes it.
