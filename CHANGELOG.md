@@ -8,6 +8,12 @@ without one is refused (`[no release]` in the tip commit is the only exception).
 Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
+## [1.21.0] - 2026-11-03
+
+- Preferences are now in a dedicated window (⌘,) with a Start at Login toggle and icon picker, replacing the old Settings submenu.
+- Menus stay open after selecting an option (except Quit and "…" items), and sections can be collapsed with a chevron.
+- Read-only menu items now appear in grey text.
+
 ## [1.20.0] - 2026-11-03
 
 - KeyLight Preferences now matches Mac Daddy's and the other Menumon apps' window: a grouped form with General first (Start at Login, Function Keys on Other Keyboards), then the backlight shortcuts and the Menu Bar Icon tiles, with the version centred at the foot. Esc or ⌘W closes it.
