@@ -27,12 +27,17 @@ final class App: NSObject, NSApplicationDelegate {
     /// The same F-key remap in the HID driver, where Safari's Secure Event
     /// Input can't hide the keys from it.
     private let hidRemapper = HIDKeyRemapper()
-    private var prefs: PreferencesWindowController?
+    private lazy var preferences = makePreferences(model: model, iconChoice: iconChoice)
     private var trustTimer: Timer?
     /// The menu-bar icon style, chosen in the Preferences window.
     private lazy var iconChoice = IconChoice(
         style: IconStyleStore.load(from: .standard),
-        preview: { [unowned self] style in self.makeIcon(style, fraction: Self.previewFraction, color: .black) },
+        // The Preferences tiles are the dark bar: Lumen lit in colour (black
+        // ink is what marks him active), the meters in white, as a dark bar
+        // tints its templates.
+        preview: { [unowned self] style in
+            self.makeIcon(style, fraction: Self.previewFraction, color: style == .key ? .black : .white)
+        },
         onChange: { [weak self] style in
             IconStyleStore.save(style, to: .standard)
             self?.refreshIcon()
@@ -251,11 +256,11 @@ final class App: NSObject, NSApplicationDelegate {
         menu.removeAllItems()
 
         if !backlight.isAvailable {
-            menu.addItem(disabledItem("Backlight control unavailable"))
+            menu.addItem(InfoMenuItem.make("Backlight control unavailable"))
         } else if Clamshell.isClosed {
             // Only a shut lid. The daemon's own flag is also up while it
             // idle-dims, and then the slider has to stay: moving it relights.
-            menu.addItem(disabledItem("Backlight suppressed (lid closed)"))
+            menu.addItem(InfoMenuItem.make("Backlight suppressed (lid closed)"))
         } else {
             // A slider row: drag to set the level; the hotkeys keep working too.
             let row = NSMenuItem()
@@ -286,19 +291,24 @@ final class App: NSObject, NSApplicationDelegate {
         timeout.toolTip = "Turn the backlight off after this long without input; it comes back on the next keypress"
         menu.addItem(timeout)
 
-        menu.addItem(actionItem("Preferences…", #selector(openPrefs), key: ","))
-
-        let quit = NSMenuItem(title: "Quit KeyLight", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
-        quit.target = NSApp
-        menu.addItem(quit)
+        // Preferences… (⌘,) and Quit KeyLight (⌘Q), as every Menumon app ends.
+        PreferencesMenu.addFooter(to: menu, appName: "KeyLight") { [weak self] in self?.preferences.show() }
+        // Every option leaves the menu open (the timeouts); Quit and the "…"
+        // items (Grant Accessibility…, Preferences…) close it.
+        KeepOpenMenu.apply(to: menu.items)
     }
 
     /// One row per timeout. The checkmark reads the live value from macOS
     /// rather than our stored choice, so a change made in System Settings shows
     /// here too — and a value we don't offer (10 s, 30 s) checks nothing.
+    /// A pick-one set: choosing one moves the tick and leaves the menu open.
     private func buildTimeoutMenu() -> NSMenu {
         let menu = NSMenu()
+        // Validation would re-enable every row (their target answers the
+        // action); without a backlight to time out they should draw grey.
+        menu.autoenablesItems = false
         let live = backlight.idleDimTime().flatMap(BacklightTimeout.init(seconds:))
+        var items: [NSMenuItem] = []
         for timeout in BacklightTimeout.allCases {
             let item = actionItem(timeout.label, #selector(selectTimeout(_:)))
             item.representedObject = timeout.seconds
@@ -306,16 +316,14 @@ final class App: NSObject, NSApplicationDelegate {
             item.isEnabled = backlight.isAvailable
             if timeout == .never || timeout == .minutes1 { menu.addItem(.separator()) }
             menu.addItem(item)
+            items.append(item)
         }
+        KeepOpenMenu.pickOne(items)
         return menu
     }
 
-    private func disabledItem(_ title: String) -> NSMenuItem {
-        NSMenuItem(title: title, action: nil, keyEquivalent: "")
-    }
-
-    private func actionItem(_ title: String, _ selector: Selector, key: String = "") -> NSMenuItem {
-        let item = NSMenuItem(title: title, action: selector, keyEquivalent: key)
+    private func actionItem(_ title: String, _ selector: Selector) -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: selector, keyEquivalent: "")
         item.target = self
         return item
     }
@@ -325,11 +333,6 @@ final class App: NSObject, NSApplicationDelegate {
     @objc private func grantTrust() {
         tap.requestTrust()
         startTapIfPossible()
-    }
-
-    @objc private func openPrefs() {
-        if prefs == nil { prefs = PreferencesWindowController(model: model, iconChoice: iconChoice) }
-        prefs?.show()
     }
 
     @objc private func selectTimeout(_ sender: NSMenuItem) {
