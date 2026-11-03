@@ -14,7 +14,7 @@ menu-bar shell) and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit)
 (the global key-tap engine). Part of
 [Menumon](https://menumon.nicksmith.software).
 
-**Version 1.18.0** · [Changelog](https://github.com/nicholaspsmith/keylight-menubar/releases)
+**Version 1.20.0** · [Changelog](https://github.com/nicholaspsmith/keylight-menubar/releases)
 
 ## Requirements
 
@@ -41,19 +41,28 @@ change. Rebind either backlight control in **Preferences…** (⌘, from the men
   row when the backlight is unavailable or the lid is closed.
 - **⚠ Grant Accessibility…** — shown only while the key tap is not trusted.
 - **Backlight Timeout ▸** — see [Backlight timeout](#backlight-timeout).
+  Picking a timeout moves the tick and leaves the menu open.
 - **Preferences…** (⌘,) — opens the Preferences window, below.
 - **Quit KeyLight** (⌘Q).
 
+As in every Menumon app, options keep the menu open; only Quit and the items
+ending in "…" close it. Rows you can't click (the unavailable and lid-closed
+notes) draw grey.
+
 ### Preferences
 
-<p align="center"><img src="docs/preferences.png" width="592" alt="KeyLight's Preferences window: the two backlight shortcuts, the Menu Bar Icon tiles, Function Keys on Other Keyboards, Start at Login and the version"></p>
+<p align="center"><img src="docs/preferences.png" width="592" alt="KeyLight Preferences: General with Start at Login and Function Keys on Other Keyboards, the two backlight shortcuts, the Menu Bar Icon tiles and the version"></p>
 
+**KeyLight Preferences** is the grouped window every Menumon app shares (Esc or
+⌘W closes it):
+
+- **General** — **Start at Login**, and **Function Keys on Other Keyboards**
+  (see [Third-party keyboards](#third-party-keyboards)).
 - **Keyboard Backlight Shortcuts** — Record a new trigger for backlight up or
   down; Reset puts back the default.
 - **Menu Bar Icon** — Key (default), Gauge, Arc, Pie or Wedge. Each tile
-  previews itself and the choice persists.
-- **Function Keys on Other Keyboards** — see [Third-party keyboards](#third-party-keyboards).
-- **Start at Login**, then the version.
+  previews itself as it looks in the bar and the choice persists.
+- The version, centred at the foot.
 
 ### Dimmer than macOS allows
 

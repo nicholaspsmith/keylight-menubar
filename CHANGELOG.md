@@ -8,6 +8,14 @@ without one is refused (`[no release]` in the tip commit is the only exception).
 Versions follow [Semantic Versioning](https://semver.org/). The full rule:
 [StatusItemKit — Releases](https://github.com/nicholaspsmith/StatusItemKit#releases-every-push-is-one).
 
+## [1.20.0] - 2026-11-03
+
+- KeyLight Preferences now matches Mac Daddy's and the other Menumon apps' window: a grouped form with General first (Start at Login, Function Keys on Other Keyboards), then the backlight shortcuts and the Menu Bar Icon tiles, with the version centred at the foot. Esc or ⌘W closes it.
+- The Menu Bar Icon tiles show each style as it looks in a dark menu bar.
+- Picking a Backlight Timeout moves the tick and leaves the menu open; only Quit and the "…" items close it.
+- Rows you can't click (backlight unavailable, lid closed) draw grey, and the timeouts grey out when there is no backlight to time out.
+- A shortcut recording left running stops when the Preferences window closes.
+
 ## [1.19.0] - 2026-11-02
 
 - Holding modifier keys like ⌘⌥ now registers correctly for navigation keys (arrows, Home, End, Page Up, Page Down, Forward Delete, Help) without requiring the fn key.
