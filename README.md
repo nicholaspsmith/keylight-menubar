@@ -14,7 +14,7 @@ menu-bar shell) and [HotkeyKit](https://github.com/nicholaspsmith/HotkeyKit)
 (the global key-tap engine). Part of
 [Menumon](https://menumon.nicksmith.software).
 
-**Version 1.21.1** · [Changelog](https://github.com/nicholaspsmith/keylight-menubar/releases)
+**Version 1.21.2** · [Changelog](https://github.com/nicholaspsmith/keylight-menubar/releases)
 
 ## Requirements
 
